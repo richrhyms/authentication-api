@@ -2,9 +2,11 @@ package com.richotaru.authenticationapi.controller;
 
 import com.richotaru.authenticationapi.dao.ClientSystemRepository;
 import com.richotaru.authenticationapi.domain.annotations.Public;
-import com.richotaru.authenticationapi.domain.model.dto.AuthenticationRequestDto;
-import com.richotaru.authenticationapi.domain.model.pojo.AuthenticationResponsePojo;
+import com.richotaru.authenticationapi.domain.model.dto.ClientUserAuthDto;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemAuthPojo;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientUserAuthPojo;
 import com.richotaru.authenticationapi.serviceImpl.ClientSystemServiceImpl;
+import com.richotaru.authenticationapi.serviceImpl.UserDetailServiceImpl;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,7 @@ public class ClientSystemUserController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private ClientSystemServiceImpl clientSystemService;
+    private UserDetailServiceImpl clientSystemService;
 
     @Autowired
     private ClientSystemRepository clientSystemRepository;
@@ -43,7 +45,7 @@ public class ClientSystemUserController {
 
 
     @PostMapping("authenticate")
-    public ResponseEntity<AuthenticationResponsePojo> AuthenticateClientSystemUser(@RequestBody AuthenticationRequestDto dto) throws Exception {
+    public ResponseEntity<ClientUserAuthPojo> AuthenticateClientSystemUser(@RequestBody ClientUserAuthDto dto) throws Exception {
        try{
            authenticationManager.authenticate(
                    new UsernamePasswordAuthenticationToken(dto.getUsername(),dto.getPassword())
@@ -54,10 +56,10 @@ public class ClientSystemUserController {
            throw  new Exception("Incorrect Username or Password", be);
        }
         UserDetails clientSystem = clientSystemService.loadUserByUsername(dto.getUsername());
-        String jwtToken = jwtUtils.generateToken(clientSystem);
+        String jwtToken = jwtUtils.generateToken(clientSystem.getUsername(),false);
         Date expirationDate = jwtUtils.extractExpiration(jwtToken);
 
-        AuthenticationResponsePojo response = new AuthenticationResponsePojo();
+        ClientUserAuthPojo response = new ClientUserAuthPojo();
         response.setJwtToken(jwtToken);
         response.setExpirationDate(expirationDate);
 

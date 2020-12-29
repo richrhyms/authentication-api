@@ -8,6 +8,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 
@@ -28,6 +29,6 @@ public class PortalUser extends BaseEntity {
     @Column(nullable = false)
     private String password;
     private String dateRegistered;
-    @ManyToOne(targetEntity = ClientSystem.class)
+    @ManyToOne(fetch = FetchType.EAGER,targetEntity = ClientSystem.class)
     private ClientSystem clientSystem;
 }

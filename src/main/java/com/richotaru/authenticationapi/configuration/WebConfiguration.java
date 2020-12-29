@@ -1,5 +1,4 @@
 package com.richotaru.authenticationapi.configuration;
-import ch.qos.logback.classic.pattern.DateConverter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -10,26 +9,26 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.richotaru.authenticationapi.configuration.interceptors.AccessConstraintHandlerInterceptor;
+import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.enums.TimeFormatConstants;
+import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import javax.validation.ConstraintValidatorFactory;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -123,9 +122,13 @@ public class WebConfiguration implements WebMvcConfigurer {
         slr.setDefaultLocale(Locale.US);
         return slr;
     }
+    @Bean
+    public RequestPrincipal requestPrincipal() {
+        Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(principalObject instanceof ClientSystem){
+            return new RequestPrincipal((ClientSystem) principalObject);
+        }
+        return new RequestPrincipal();
+    }
 
-//    @Bean(name = "threadPoolTaskExecutor")
-//    public Executor threadPoolTaskExecutor() {
-//        return new ThreadPoolTaskExecutor();
-//    }
 }

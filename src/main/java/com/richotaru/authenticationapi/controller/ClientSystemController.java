@@ -7,9 +7,9 @@ import com.richotaru.authenticationapi.dao.ClientSystemRepository;
 import com.richotaru.authenticationapi.domain.annotations.Public;
 import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.entity.QClientSystem;
-import com.richotaru.authenticationapi.domain.model.dto.AuthenticationRequestDto;
+import com.richotaru.authenticationapi.domain.model.dto.ClientSystemAuthDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
-import com.richotaru.authenticationapi.domain.model.pojo.AuthenticationResponsePojo;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemAuthPojo;
 import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import com.richotaru.authenticationapi.serviceImpl.ClientSystemServiceImpl;
 import com.richotaru.authenticationapi.utils.JwtUtils;
@@ -80,12 +80,11 @@ public class ClientSystemController {
             clientSystem.setClientName(dto.getClientName());
             clientSystem.setDateRegistered(new Timestamp(new Date().getTime()));
             clientSystem.setDisplayName(dto.getDisplayName());
-            ClientSystemPojo savedClient = new ClientSystemPojo(clientSystemRepository.save(clientSystem));
-            UserDetails userDetails = clientSystemService.loadUserByUsername(savedClient.getClientName());
-            String jwtToken = jwtUtils.generateToken(userDetails);
-            savedClient.setJwtToken(jwtToken);
-            savedClient.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(jwtToken).getTime()));
 
+            String jwtToken = jwtUtils.generateToken(dto.getClientName(),true);
+            clientSystem.setJwtToken(jwtToken);
+            ClientSystemPojo savedClient = new ClientSystemPojo(clientSystemRepository.save(clientSystem));
+            savedClient.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(jwtToken).getTime()));
             return ResponseEntity.ok(savedClient);
         }catch (Exception e){
             e.printStackTrace();
@@ -94,25 +93,16 @@ public class ClientSystemController {
     }
 
     @PostMapping("authenticate")
-    public ResponseEntity<AuthenticationResponsePojo> authenticateClientSystem(@RequestBody AuthenticationRequestDto dto) throws Exception {
+    public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
        try {
            authenticationManager.authenticate(
                    new UsernamePasswordAuthenticationToken(dto.getUsername(),dto.getPassword())
            );
-
        }catch (BadCredentialsException be){
            be.printStackTrace();
            throw  new Exception("Incorrect Username or Password", be);
        }
-        UserDetails clientSystem = clientSystemService.loadUserByUsername(dto.getUsername());
-        String jwtToken = jwtUtils.generateToken(clientSystem);
-        Date expirationDate = jwtUtils.extractExpiration(jwtToken);
-
-        AuthenticationResponsePojo response = new AuthenticationResponsePojo();
-        response.setJwtToken(jwtToken);
-        response.setExpirationDate(expirationDate);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(clientSystemService.authenticateClient(dto));
     }
 
 

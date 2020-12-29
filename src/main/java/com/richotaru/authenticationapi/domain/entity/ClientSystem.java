@@ -7,6 +7,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import java.util.List;
 
 @Data
 @Entity(name="client_system")
-//@Table
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class ClientSystem extends BaseEntity {
@@ -25,6 +25,8 @@ public class ClientSystem extends BaseEntity {
     @Column(nullable = false)
     private String displayName;
     private Timestamp dateRegistered;
-    @OneToMany(targetEntity = PortalUser.class)
+    @Column(nullable = false)
+    private String jwtToken;
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "id", targetEntity = PortalUser.class)
     private List<PortalUser> users = new ArrayList<>();
 }
