@@ -3,21 +3,16 @@ package com.richotaru.authenticationapi.domain.entity;
 import com.querydsl.core.annotations.QueryEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.relational.core.mapping.Table;
 
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 
 @Data
-@Entity(name="portal_user")
+@Entity(name="client_user")
 //@Table
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
-public class PortalUser extends BaseEntity {
+public class ClientUser extends BaseEntity {
     @Column(nullable = false)
     private String firstName;
     @Column(nullable = false)
@@ -25,10 +20,13 @@ public class PortalUser extends BaseEntity {
     @Column(nullable = false)
     private String displayName;
     @Column(nullable = false)
-    private String username;
+    private String phoneNumber;
     @Column(nullable = false)
-    private String password;
-    private String dateRegistered;
-    @ManyToOne(fetch = FetchType.EAGER,targetEntity = ClientSystem.class)
+    private String email;
+    @Column(nullable = false)
+    private String accountCode;
+    @OneToOne(fetch = FetchType.EAGER,targetEntity = PortalAccount.class, mappedBy = "id")
+    private PortalAccount portalAccount;
+    @OneToOne(fetch = FetchType.EAGER,targetEntity = ClientSystem.class, mappedBy = "id")
     private ClientSystem clientSystem;
 }

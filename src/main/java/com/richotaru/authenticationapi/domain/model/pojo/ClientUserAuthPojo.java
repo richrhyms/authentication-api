@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 @NoArgsConstructor
-public class ClientSystemAuthPojo {
+public class ClientUserAuthPojo {
     private String jwtToken;
     private Date expirationDate;
 }

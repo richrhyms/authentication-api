@@ -4,19 +4,26 @@ import com.richotaru.authenticationapi.domain.enums.RoleConstant;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.Column;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.Set;
 
 @Data
 @NoArgsConstructor
-public class ClientSystemDto {
+public class ClientUserDto {
     @NotBlank
-    private String clientName;
+    private String firstName;
     @NotBlank
-    private String clientKey;
+    private String lastName;
     @NotBlank
     private String displayName;
+    @NotBlank
+    private String password;
+    @NotBlank
+    private String phoneNumber;
+    @NotBlank
+    private String email;
     @NotNull
     private Set<RoleConstant> roles;
 }

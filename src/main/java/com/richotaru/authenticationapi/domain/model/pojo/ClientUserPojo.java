@@ -1,31 +1,37 @@
 package com.richotaru.authenticationapi.domain.model.pojo;
 
 import com.richotaru.authenticationapi.domain.entity.ClientSystem;
-import com.richotaru.authenticationapi.domain.entity.PortalUser;
-import lombok.AllArgsConstructor;
+import com.richotaru.authenticationapi.domain.entity.ClientUser;
+import com.richotaru.authenticationapi.domain.entity.PortalAccount;
+import com.richotaru.authenticationapi.domain.enums.RoleConstant;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.BeanUtils;
 
-import javax.persistence.Column;
-import javax.persistence.OneToMany;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.Set;
+
 
 @Data
 @NoArgsConstructor
-public class ClientSystemPojo {
-    private String clientName;
-    private String clientKey;
+public class ClientUserPojo {
+    private String firstName;
+    private String lastName;
     private String displayName;
-    private Timestamp dateRegistered;
-    private List<PortalUser> users = new ArrayList<>();
-    private String jwtToken;
-    private Timestamp expirationDate;
+    private String username;
+    private String password;
+    private String dateRegistered;
+    private String phoneNumber;
+    private String email;
+    private Set<RoleConstant> roles;
+    private ClientSystem clientSystem;
+    private PortalAccount portalAccount;
 
-    public ClientSystemPojo(ClientSystem clientSystem) {
-        BeanUtils.copyProperties(clientSystem, this);
+
+    public ClientUserPojo(ClientUser clientUser) {
+        BeanUtils.copyProperties(clientUser, this);
+
     }
+
 }
