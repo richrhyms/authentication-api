@@ -33,10 +33,12 @@ public class DefaultClientSystemSetup {
     public void init() {
         transactionTemplate.execute(tx -> {
             try {
-                logger.error("Creating Default Client System");
+                logger.info("Searching for Default Client System");
 
                 clientSystemRepository.findClientSystemByClientName("admin")
                         .orElseGet(() -> {
+                            logger.warn("Default Client System Not Found");
+                            logger.info("Creating Default Client System");
                             ClientSystem clientSystem = new ClientSystem();
                             clientSystem.setClientName("admin");
                             clientSystem.setClientKey("admin");
@@ -47,7 +49,8 @@ public class DefaultClientSystemSetup {
                             clientSystem.setLastUpdated(new Timestamp(new java.util.Date().getTime()));
                             clientSystem.setStatus(GenericStatusConstant.ACTIVE);
 
-                            clientSystemRepository.save(clientSystem);
+                            ClientSystem created = clientSystemRepository.save(clientSystem);
+                            logger.info("Default Client System Created {}",created);
                             return null;
                         });
 
