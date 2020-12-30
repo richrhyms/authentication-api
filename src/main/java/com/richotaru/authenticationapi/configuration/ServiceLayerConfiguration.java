@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
-import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -79,7 +78,7 @@ public class ServiceLayerConfiguration {
         props.put("showSql", false);
         props.put("formatSql", true);
         props.put("databasePlatform", Database.POSTGRESQL);
-        props.put("hibernate.hbm2ddl.auto", "create");
+        props.put("hibernate.hbm2ddl.auto", "update");
         factoryBean.setJpaProperties(props);
         factoryBean.setPackagesToScan("com.richotaru.authenticationapi.domain.entity");
         return factoryBean;

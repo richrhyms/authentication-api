@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Olaleye Afolabi <oafolabi@byteworks.com.ng>
+ * @author Otaru Richard <richotaru@gmail.com>
  */
 public class TimeFormatConstants {
 

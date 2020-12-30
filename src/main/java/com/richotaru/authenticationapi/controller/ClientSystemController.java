@@ -3,30 +3,26 @@ package com.richotaru.authenticationapi.controller;
 import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.richotaru.authenticationapi.dao.AppRepository;
-import com.richotaru.authenticationapi.dao.ClientSystemRepository;
 import com.richotaru.authenticationapi.domain.annotations.Public;
 import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.entity.QClientSystem;
-import com.richotaru.authenticationapi.domain.model.dto.AuthenticationRequestDto;
+import com.richotaru.authenticationapi.domain.model.dto.ClientSystemAuthDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
-import com.richotaru.authenticationapi.domain.model.pojo.AuthenticationResponsePojo;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemAuthPojo;
 import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import com.richotaru.authenticationapi.serviceImpl.ClientSystemServiceImpl;
-import com.richotaru.authenticationapi.utils.JwtUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -38,20 +34,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("client")
 public class ClientSystemController {
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private ClientSystemServiceImpl clientSystemService;
 
-    @Autowired
-    private ClientSystemRepository clientSystemRepository;
+    private final ClientSystemServiceImpl clientSystemService;
 
-    @Autowired
-    private JwtUtils jwtUtils;
+    private final AppRepository appRepository;
 
-    @Autowired
-    private AppRepository appRepository;
+    public ClientSystemController(ClientSystemServiceImpl clientSystemService,
+                                  AppRepository appRepository) {
+        this.clientSystemService = clientSystemService;
+        this.appRepository = appRepository;
+    }
 
 
     @Public
@@ -60,64 +54,35 @@ public class ClientSystemController {
     @ApiResponses(@ApiResponse(responseCode = "200", description = "Client System List"))
     public QueryResults<ClientSystemPojo> searchClientSystem(@RequestParam("limit") Optional<Integer> optionalLimit,
                                                              @RequestParam("offset") Optional<Integer> optionalOffset,
-                                                             @RequestParam("displayName")Optional<String> optionalDisplayName){
+                                                             @RequestParam("username")Optional<String> optionalUserName){
         JPAQuery<ClientSystem> jpaQuery = appRepository.startJPAQuery(QClientSystem.clientSystem);
 
         jpaQuery.limit(optionalLimit.orElse(100));
         jpaQuery.offset(optionalOffset.orElse(0));
 
-        optionalDisplayName.ifPresent(display->{
-            jpaQuery.where(QClientSystem.clientSystem.displayName.equalsIgnoreCase(display));
+        optionalUserName.ifPresent(username->{
+            jpaQuery.where(QClientSystem.clientSystem.clientName.equalsIgnoreCase(username));
         });
         QueryResults<ClientSystem> result = jpaQuery.fetchResults();
-        return  new QueryResults<>(getClientSytemPojos(result.getResults()),result.getLimit(),result.getOffset(),result.getTotal());
+        return  new QueryResults<>(getClientSystemPojos(result.getResults()),result.getLimit(),result.getOffset(),result.getTotal());
     }
     @PostMapping("create")
-    public ResponseEntity<ClientSystemPojo> creeteClientSystem(@RequestBody @Valid ClientSystemDto dto) throws Exception {
+    public ResponseEntity<ClientSystemPojo> createClientSystem(@RequestBody @Valid ClientSystemDto dto) throws Exception {
         try {
-
-            ClientSystem clientSystem = new ClientSystem();
-            clientSystem.setClientKey(dto.getClientKey());
-            clientSystem.setClientName(dto.getClientName());
-            clientSystem.setDateRegistered(new Timestamp(new Date().getTime()));
-            clientSystem.setDisplayName(dto.getDisplayName());
-            ClientSystemPojo savedClient = new ClientSystemPojo(clientSystemRepository.save(clientSystem));
-            UserDetails userDetails = clientSystemService.loadUserByUsername(savedClient.getClientName());
-            String jwtToken = jwtUtils.generateToken(userDetails);
-            savedClient.setJwtToken(jwtToken);
-            savedClient.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(jwtToken).getTime()));
-
-            return ResponseEntity.ok(savedClient);
+            return ResponseEntity.ok(clientSystemService.createClientSystem(dto));
         }catch (Exception e){
             e.printStackTrace();
             throw  new Exception("Unable to create Client System at this time", e);
         }
     }
-
+    @Public
     @PostMapping("authenticate")
-    public ResponseEntity<AuthenticationResponsePojo> authenticateClientSystem(@RequestBody AuthenticationRequestDto dto) throws Exception {
-       try {
-           authenticationManager.authenticate(
-                   new UsernamePasswordAuthenticationToken(dto.getUsername(),dto.getPassword())
-           );
-
-       }catch (BadCredentialsException be){
-           be.printStackTrace();
-           throw  new Exception("Incorrect Username or Password", be);
-       }
-        UserDetails clientSystem = clientSystemService.loadUserByUsername(dto.getUsername());
-        String jwtToken = jwtUtils.generateToken(clientSystem);
-        Date expirationDate = jwtUtils.extractExpiration(jwtToken);
-
-        AuthenticationResponsePojo response = new AuthenticationResponsePojo();
-        response.setJwtToken(jwtToken);
-        response.setExpirationDate(expirationDate);
-
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
+        return ResponseEntity.ok(clientSystemService.authenticateClient(dto));
     }
 
 
-    private List<ClientSystemPojo> getClientSytemPojos(List<ClientSystem> clientSystems){
+    private List<ClientSystemPojo> getClientSystemPojos(List<ClientSystem> clientSystems){
         return clientSystems.stream().map(ClientSystemPojo::new).collect(Collectors.toList());
     }
 }
