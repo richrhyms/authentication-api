@@ -12,7 +12,8 @@ import java.util.List;
 
 
 @Data
-@Entity
+@Entity(name="portal_account")
+//@Table
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class PortalAccount extends BaseEntity {

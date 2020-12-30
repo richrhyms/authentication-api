@@ -15,6 +15,8 @@ import com.richotaru.authenticationapi.service.PortalAccountService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ import java.util.Date;
 
 @Service
 public class ClientSystemServiceImpl implements ClientSystemService {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final ClientSystemRepository clientSystemRepository;
     private final PortalAccountService portalAccountService;
     private final SequenceGenerator sequenceGenerator;
@@ -69,9 +73,12 @@ public class ClientSystemServiceImpl implements ClientSystemService {
 
     @Transactional
     @Override
-    public ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws UsernameNotFoundException {
-        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(dto.getUsername(),GenericStatusConstant.ACTIVE).orElseThrow(()
+    public ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws Exception {
+        logger.info("USERNAME::"+ dto.getUsername() +" Status" + GenericStatusConstant.ACTIVE);
+
+        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(dto.getUsername(), GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
+        logger.info("STARTED");
 
         String jwtToken = user.getPortalAccount().getJwtToken();
 
@@ -87,6 +94,8 @@ public class ClientSystemServiceImpl implements ClientSystemService {
         ClientSystemAuthPojo response = new ClientSystemAuthPojo();
         response.setJwtToken(jwtToken);
         response.setExpirationDate(expirationDate);
+        logger.info("RETURN");
+
         return response;
     }
     @Transactional

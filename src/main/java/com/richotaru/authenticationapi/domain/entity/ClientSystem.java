@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Entity
+@Entity(name="client_system")
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class ClientSystem extends BaseEntity {

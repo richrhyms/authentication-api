@@ -11,9 +11,9 @@ import java.util.Optional;
 //@Repository
 public interface ClientSystemRepository extends JpaRepository<ClientSystem, Long> {
 
-    @Query("select cs from ClientSystem cs left join fetch cs.portalAccount" +
-            " where cs.clientName = ?1 AND cs.status =?2 ")
-    Optional<ClientSystem> findByClientNameAndStatus(String clientName, GenericStatusConstant constant);
+//    @Query("select cs from client_system cs left join fetch cs.portalAccount" +
+//            " where cs.clientName = ?1 AND cs.status =?2 ")
+//    Optional<ClientSystem> findByClientNameAndStatus(String clientName, GenericStatusConstant constant);
 
-//    Optional<ClientSystem> findByClientNameAndStatus(String clientName,);
+    Optional<ClientSystem> findByClientNameAndStatus(String clientName,GenericStatusConstant constant);
 }

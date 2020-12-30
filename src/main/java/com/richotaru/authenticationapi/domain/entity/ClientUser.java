@@ -8,7 +8,7 @@ import javax.persistence.*;
 
 
 @Data
-@Entity
+@Entity(name="client_user")
 //@Table
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)

@@ -14,6 +14,8 @@ import com.richotaru.authenticationapi.serviceImpl.ClientSystemServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -32,6 +34,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("client")
 public class ClientSystemController {
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final AuthenticationManager authenticationManager;
 
     private final ClientSystemServiceImpl clientSystemService;
@@ -76,14 +80,18 @@ public class ClientSystemController {
 //    @Public
     @PostMapping("authenticate")
     public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
+        logger.info("STARTED");
        try {
            authenticationManager.authenticate(
                    new UsernamePasswordAuthenticationToken(dto.getUsername(),dto.getPassword())
            );
+           logger.info("ENDED");
        }catch (BadCredentialsException be){
+           logger.info("ERROR");
            be.printStackTrace();
            throw  new Exception("Incorrect Username or Password", be);
        }
+        logger.info("RETURN");
         return ResponseEntity.ok(clientSystemService.authenticateClient(dto));
     }
 

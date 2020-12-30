@@ -8,6 +8,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public interface ClientSystemService {
     ClientSystemPojo createClientSystem(ClientSystemDto dto);
-    ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws UsernameNotFoundException;
+    ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws Exception;
     ClientSystemPojo getAuthenticatedClient(String username) throws UsernameNotFoundException;
 }

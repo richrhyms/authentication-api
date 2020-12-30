@@ -42,17 +42,15 @@ public class WebConfiguration implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
 
     private final ConstraintValidatorFactory constraintValidatorFactory;
-    private final JwtUtils jwtUtils;
-    private final ClientSystemService clientSystemService;
+//    private final JwtUtils jwtUtils;
+//    private final ClientSystemService clientSystemService;
 
     public WebConfiguration(ApplicationContext applicationContext,
-                            ConstraintValidatorFactory constraintValidatorFactory,
-                            JwtUtils jwtUtils,
-                            ClientSystemService clientSystemService) {
+                            ConstraintValidatorFactory constraintValidatorFactory) {
         this.applicationContext = applicationContext;
         this.constraintValidatorFactory = constraintValidatorFactory;
-        this.jwtUtils = jwtUtils;
-        this.clientSystemService = clientSystemService;
+//        this.jwtUtils = jwtUtils;
+//        this.clientSystemService = clientSystemService;
     }
 
 //    @Override
