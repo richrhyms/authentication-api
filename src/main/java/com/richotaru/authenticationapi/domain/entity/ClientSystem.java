@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Entity(name="client_system")
+@Entity
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class ClientSystem extends BaseEntity {
@@ -19,7 +19,7 @@ public class ClientSystem extends BaseEntity {
     private String clientCode;
     @Column(nullable = false)
     private String displayName;
-    @OneToOne(fetch = FetchType.EAGER,targetEntity = PortalAccount.class, mappedBy = "id")
+    @OneToOne
     private PortalAccount portalAccount;
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "id", targetEntity = ClientUser.class)
     private List<ClientUser> users = new ArrayList<>();

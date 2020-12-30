@@ -73,7 +73,7 @@ public class ClientSystemController {
             throw  new Exception("Unable to create Client System at this time", e);
         }
     }
-
+//    @Public
     @PostMapping("authenticate")
     public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
        try {

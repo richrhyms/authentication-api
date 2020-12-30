@@ -8,7 +8,7 @@ import javax.persistence.*;
 
 
 @Data
-@Entity(name="client_user")
+@Entity
 //@Table
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
@@ -25,8 +25,8 @@ public class ClientUser extends BaseEntity {
     private String email;
     @Column(nullable = false)
     private String accountCode;
-    @OneToOne(fetch = FetchType.EAGER,targetEntity = PortalAccount.class, mappedBy = "id")
+    @OneToOne
     private PortalAccount portalAccount;
-    @OneToOne(fetch = FetchType.EAGER,targetEntity = ClientSystem.class, mappedBy = "id")
+    @OneToOne
     private ClientSystem clientSystem;
 }

@@ -9,10 +9,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.enums.TimeFormatConstants;
-import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
-import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
+import com.richotaru.authenticationapi.service.ClientSystemService;
+import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
 import org.springframework.context.ApplicationContext;
@@ -20,7 +19,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -44,19 +42,30 @@ public class WebConfiguration implements WebMvcConfigurer {
     private final ApplicationContext applicationContext;
 
     private final ConstraintValidatorFactory constraintValidatorFactory;
+    private final JwtUtils jwtUtils;
+    private final ClientSystemService clientSystemService;
 
-    public WebConfiguration(ApplicationContext applicationContext, ConstraintValidatorFactory constraintValidatorFactory) {
+    public WebConfiguration(ApplicationContext applicationContext,
+                            ConstraintValidatorFactory constraintValidatorFactory,
+                            JwtUtils jwtUtils,
+                            ClientSystemService clientSystemService) {
         this.applicationContext = applicationContext;
         this.constraintValidatorFactory = constraintValidatorFactory;
+        this.jwtUtils = jwtUtils;
+        this.clientSystemService = clientSystemService;
     }
 
 //    @Override
 //    public void addInterceptors(InterceptorRegistry registry) {
+//        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils,clientSystemService));
 //        registry.addInterceptor(new AccessConstraintHandlerInterceptor(applicationContext));
 //        registry.addInterceptor(localeChangeInterceptor());
 //    }
 
-
+//    @Bean
+//    public FactoryBean<RequestPrincipal> requestPrincipal() {
+//        return RequestPrincipalHandlerInterceptor.requestPrincipal();
+//    }
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
         converters.add(customJackson2HttpMessageConverter());
@@ -122,13 +131,4 @@ public class WebConfiguration implements WebMvcConfigurer {
         slr.setDefaultLocale(Locale.US);
         return slr;
     }
-    @Bean
-    public RequestPrincipal requestPrincipal() {
-        Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(principalObject instanceof ClientSystem){
-            return new RequestPrincipal((ClientSystem) principalObject);
-        }
-        return new RequestPrincipal();
-    }
-
 }

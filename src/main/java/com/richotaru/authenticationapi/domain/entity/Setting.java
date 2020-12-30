@@ -12,8 +12,7 @@ import javax.persistence.Id;
 import java.io.Serializable;
 
 @Data
-@Entity(name="setting")
-//@Table
+@Entity
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class Setting implements Serializable {

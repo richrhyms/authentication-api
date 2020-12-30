@@ -12,8 +12,7 @@ import java.util.List;
 
 
 @Data
-@Entity(name="portal_account")
-//@Table
+@Entity
 @QueryEntity
 @EqualsAndHashCode(callSuper=false)
 public class PortalAccount extends BaseEntity {
@@ -32,4 +31,10 @@ public class PortalAccount extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType. STRING)
     public AccountTypeConstant accountType;
+//    @OneToOne
+//    @JoinColumn(columnDefinition = "id")
+//    private ClientSystem clientSystem;
+//    @OneToOne
+//    @JoinColumn(columnDefinition = "id")
+//    private  ClientUser clientUser;
 }

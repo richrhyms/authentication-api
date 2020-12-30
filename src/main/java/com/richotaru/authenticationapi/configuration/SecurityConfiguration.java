@@ -2,8 +2,7 @@ package com.richotaru.authenticationapi.configuration;
 
 
 
-import com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,7 +11,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -21,8 +19,8 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    @Autowired
-    private ClientSystemJwtFilter clientSystemJwtFilter;
+//    @Autowired
+//    private ClientSystemJwtFilter clientSystemJwtFilter;
 
 //    @Override
 //    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -45,7 +43,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/client/authenticate").permitAll()
                 .anyRequest().authenticated();
-        http.addFilterBefore(clientSystemJwtFilter, UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterBefore(clientSystemJwtFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     @Override

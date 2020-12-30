@@ -20,14 +20,17 @@ import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.FactoryBean;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,21 +40,20 @@ import java.util.stream.Collectors;
 
 @Service
 public class ClientUserServiceImpl implements ClientUserService {
-    private final ClientSystemRepository clientSystemRepository;
     private final ClientUserRepository clientUserRepository;
     private final PortalAccountService portalAccountService;
-    private final RequestPrincipal requestPrincipal;
+    private final Provider<RequestPrincipal> requestPrincipalProvider;
     private final SequenceGenerator sequenceGenerator;
     private final JwtUtils jwtUtils;
 
-    public ClientUserServiceImpl(ClientSystemRepository clientSystemRepository,
-                                 ClientUserRepository clientUserRepository, PortalAccountService portalAccountService,
-                                 RequestPrincipal requestPrincipal, @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
+    public ClientUserServiceImpl(ClientUserRepository clientUserRepository,
+                                 PortalAccountService portalAccountService,
+                                 Provider<RequestPrincipal> requestPrincipalProvider,
+                                 @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
                                  JwtUtils jwtUtils) {
-        this.clientSystemRepository = clientSystemRepository;
         this.clientUserRepository = clientUserRepository;
         this.portalAccountService = portalAccountService;
-        this.requestPrincipal = requestPrincipal;
+        this.requestPrincipalProvider = requestPrincipalProvider;
         this.sequenceGenerator = sequenceGenerator;
         this.jwtUtils = jwtUtils;
     }
@@ -59,25 +61,31 @@ public class ClientUserServiceImpl implements ClientUserService {
     @Transactional
     @Override
     public ClientUserPojo createClientUser(ClientUserDto dto) {
-        AccountCreationDto creationDto = new AccountCreationDto();
-        creationDto.setAccountType(AccountTypeConstant.CLIENT_SYSTEM);
-        creationDto.setDisplayName(dto.getDisplayName());
-        creationDto.setUsername(dto.getEmail());
-        creationDto.setPassword(dto.getPassword());
-        creationDto.setRoles(dto.getRoles());
-        PortalAccount portalAccount = portalAccountService.createPortalAccount(creationDto, false);
+        try {
+            ClientSystem client = requestPrincipalProvider.get().getClient();
+            AccountCreationDto creationDto = new AccountCreationDto();
+            creationDto.setAccountType(AccountTypeConstant.CLIENT_SYSTEM);
+            creationDto.setDisplayName(dto.getDisplayName());
+            creationDto.setUsername(dto.getEmail());
+            creationDto.setPassword(dto.getPassword());
+            creationDto.setRoles(dto.getRoles());
+            PortalAccount portalAccount = portalAccountService.createPortalAccount(creationDto, false);
 
-        ClientUser user = new ClientUser();
-        BeanUtils.copyProperties(dto, user);
+            ClientUser user = new ClientUser();
+            BeanUtils.copyProperties(dto, user);
 
-        user.setPortalAccount(portalAccount);
-        user.setAccountCode(sequenceGenerator.getNext());
-        user.setClientSystem(requestPrincipal.getClient());
-        user.setDateCreated(new Timestamp(new java.util.Date().getTime()));
-        user.setLastUpdated(new Timestamp(new java.util.Date().getTime()));
-        user.setStatus(GenericStatusConstant.ACTIVE);
+            user.setPortalAccount(portalAccount);
+            user.setAccountCode(sequenceGenerator.getNext());
+            user.setClientSystem(client);
+            user.setDateCreated(new Timestamp(new java.util.Date().getTime()));
+            user.setLastUpdated(new Timestamp(new java.util.Date().getTime()));
+            user.setStatus(GenericStatusConstant.ACTIVE);
 
-        return new ClientUserPojo(clientUserRepository.save(user));
+            return new ClientUserPojo(clientUserRepository.save(user));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     @Transactional
     @Override

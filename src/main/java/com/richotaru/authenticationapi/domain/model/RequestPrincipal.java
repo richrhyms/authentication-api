@@ -8,9 +8,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class RequestPrincipal {
+    public static final String AUTH_TOKEN_NAME = "jwt_token";
     private ClientSystemPojo clientPojo;
     private ClientSystem client;
     private String jwtToken;
+    private String idAddress;
+
 
     public RequestPrincipal(ClientSystem clientSystem) {
         this.clientPojo = new ClientSystemPojo(clientSystem);

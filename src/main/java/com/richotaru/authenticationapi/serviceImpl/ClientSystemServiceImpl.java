@@ -2,11 +2,9 @@ package com.richotaru.authenticationapi.serviceImpl;
 import com.richotaru.authenticationapi.domain.enums.AccountTypeConstant;
 import com.google.common.collect.Lists;
 import com.richotaru.authenticationapi.dao.ClientSystemRepository;
-import com.richotaru.authenticationapi.dao.PortalAccountRepository;
 import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.entity.PortalAccount;
 import com.richotaru.authenticationapi.domain.enums.GenericStatusConstant;
-import com.richotaru.authenticationapi.domain.enums.RoleConstant;
 import com.richotaru.authenticationapi.domain.model.dto.AccountCreationDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemAuthDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
@@ -16,7 +14,6 @@ import com.richotaru.authenticationapi.service.ClientSystemService;
 import com.richotaru.authenticationapi.service.PortalAccountService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.ClientSystemCodeSequence;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -24,7 +21,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.util.Date;
-import java.util.stream.Collectors;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -74,7 +70,7 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     @Transactional
     @Override
     public ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws UsernameNotFoundException {
-        ClientSystem user = clientSystemRepository.findClientSystemByClientName(dto.getUsername()).orElseThrow(()
+        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(dto.getUsername(),GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
 
         String jwtToken = user.getPortalAccount().getJwtToken();
@@ -96,7 +92,7 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     @Transactional
     @Override
     public ClientSystemPojo getAuthenticatedClient(String username) throws UsernameNotFoundException {
-        ClientSystem user = clientSystemRepository.findClientSystemByClientName(username).orElseThrow(()
+        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
         ClientSystemPojo pojo = new ClientSystemPojo(user);
         pojo.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(pojo.getJwtToken()).getTime()));
