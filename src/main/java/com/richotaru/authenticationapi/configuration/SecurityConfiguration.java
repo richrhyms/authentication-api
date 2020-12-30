@@ -4,9 +4,7 @@ package com.richotaru.authenticationapi.configuration;
 
 
 import com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -21,14 +19,6 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-    @Autowired
-    private ClientSystemJwtFilter clientSystemJwtFilter;
-
-//    @Override
-//    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.userDetailsService(userDetailService);
-//    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -46,17 +36,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/client/authenticate").permitAll()
                 .anyRequest().authenticated();
-        http.addFilterBefore(clientSystemJwtFilter, UsernamePasswordAuthenticationFilter.class);
-    }
-
-    @Override
-    @Bean
-    public AuthenticationManager authenticationManager() throws Exception {
-        return super.authenticationManager();
+        http.addFilterBefore(clientSystemJwtFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
+    }
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+    @Bean
+    public ClientSystemJwtFilter clientSystemJwtFilter() {
+        return new ClientSystemJwtFilter();
     }
 }

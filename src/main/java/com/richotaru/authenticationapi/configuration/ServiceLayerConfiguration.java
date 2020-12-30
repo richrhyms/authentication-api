@@ -39,7 +39,7 @@ public class ServiceLayerConfiguration {
         props.put("showSql", true);
         props.put("formatSql", true);
         props.put("databasePlatform", Database.POSTGRESQL);
-        props.put("hibernate.hbm2ddl.auto", "create-drop");
+        props.put("hibernate.hbm2ddl.auto", "create");
         factoryBean.setJpaProperties(props);
         factoryBean.setPackagesToScan("com.richotaru.authenticationapi.domain.entity");
 

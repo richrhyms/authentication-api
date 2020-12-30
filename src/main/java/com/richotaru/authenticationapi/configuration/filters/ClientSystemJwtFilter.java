@@ -7,6 +7,7 @@ import com.richotaru.authenticationapi.service.ClientSystemService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,18 +25,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Named
+
 public class ClientSystemJwtFilter extends OncePerRequestFilter {
     public static final String AUTHORIZATION_HEADER = "Authorization";
-    private final JwtUtils jwtUtils;
-    private final ClientSystemService clientSystemService;
+    @Autowired
+    private JwtUtils jwtUtils;
+    @Autowired
+    private ClientSystemService clientSystemService;
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public ClientSystemJwtFilter(JwtUtils jwtUtils, ClientSystemService clientSystemService) {
-        this.jwtUtils = jwtUtils;
-        this.clientSystemService = clientSystemService;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -47,7 +46,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
             logger.info("USER NAME = " + clientName);
             RequestPrincipal requestPrincipal = new RequestPrincipal(clientSystemService.getAuthenticatedClient(clientName));
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(requestPrincipal, jwt,
-                    resolveRoles(requestPrincipal.getClient().getPortalAccount())));
+                    resolveRoles(requestPrincipal.getPortalAccount())));
         }
         logger.info("Finished Authenticating Client System...");
         filterChain.doFilter(request, response);

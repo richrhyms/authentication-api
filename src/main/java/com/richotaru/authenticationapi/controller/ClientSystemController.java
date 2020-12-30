@@ -36,15 +36,13 @@ import java.util.stream.Collectors;
 public class ClientSystemController {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final AuthenticationManager authenticationManager;
 
     private final ClientSystemServiceImpl clientSystemService;
 
     private final AppRepository appRepository;
 
-    public ClientSystemController(AuthenticationManager authenticationManager,
-                                  ClientSystemServiceImpl clientSystemService, AppRepository appRepository) {
-        this.authenticationManager = authenticationManager;
+    public ClientSystemController(ClientSystemServiceImpl clientSystemService,
+                                  AppRepository appRepository) {
         this.clientSystemService = clientSystemService;
         this.appRepository = appRepository;
     }
@@ -77,21 +75,9 @@ public class ClientSystemController {
             throw  new Exception("Unable to create Client System at this time", e);
         }
     }
-//    @Public
+    @Public
     @PostMapping("authenticate")
     public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
-        logger.info("STARTED");
-       try {
-           authenticationManager.authenticate(
-                   new UsernamePasswordAuthenticationToken(dto.getUsername(),dto.getPassword())
-           );
-           logger.info("ENDED");
-       }catch (BadCredentialsException be){
-           logger.info("ERROR");
-           be.printStackTrace();
-           throw  new Exception("Incorrect Username or Password", be);
-       }
-        logger.info("RETURN");
         return ResponseEntity.ok(clientSystemService.authenticateClient(dto));
     }
 

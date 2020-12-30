@@ -25,5 +25,8 @@ public class ClientSystemPojo {
 
     public ClientSystemPojo(ClientSystem clientSystem) {
         BeanUtils.copyProperties(clientSystem, this);
+        if(clientSystem.getPortalAccount().getJwtToken() != null){
+            this.jwtToken = clientSystem.getPortalAccount().getJwtToken();
+        }
     }
 }
