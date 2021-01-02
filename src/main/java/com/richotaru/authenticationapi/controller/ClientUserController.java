@@ -51,6 +51,7 @@ public class ClientUserController {
         QueryResults<ClientUser> result = jpaQuery.fetchResults();
         return  new QueryResults<>(getClientUserPojos(result.getResults()),result.getLimit(),result.getOffset(),result.getTotal());
     }
+    @Public
     @PostMapping
     public ResponseEntity<ClientUserPojo> createClientUser(@RequestBody ClientUserDto dto) throws Exception {
         return ResponseEntity.ok(clientUserService.createClientUser(dto));

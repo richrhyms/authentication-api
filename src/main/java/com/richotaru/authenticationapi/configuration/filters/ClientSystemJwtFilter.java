@@ -8,11 +8,14 @@ import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.inject.Named;
@@ -32,7 +35,8 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
     @Autowired
     private ClientSystemService clientSystemService;
-
+    @Autowired
+    private ApplicationContext applicationContext;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
@@ -47,6 +51,10 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
             RequestPrincipal requestPrincipal = new RequestPrincipal(clientSystemService.getAuthenticatedClient(clientName));
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(requestPrincipal, jwt,
                     resolveRoles(requestPrincipal.getPortalAccount())));
+            applicationContext.getAutowireCapableBeanFactory().autowireBean(requestPrincipal);
+            RequestContextHolder.currentRequestAttributes().setAttribute(RequestPrincipal.class.getName(),
+                    requestPrincipal,
+                    RequestAttributes.SCOPE_REQUEST);
         }
         logger.info("Finished Authenticating Client System...");
         filterChain.doFilter(request, response);

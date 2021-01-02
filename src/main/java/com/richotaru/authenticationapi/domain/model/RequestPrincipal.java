@@ -24,11 +24,4 @@ public class RequestPrincipal {
             this.jwtToken = clientSystem.getPortalAccount().getJwtToken();
         }
     }
-    public RequestPrincipal(ClientSystemPojo clientSystemPojo) {
-        this.clientPojo = clientSystemPojo;
-        if(clientSystemPojo.getPortalAccount().getJwtToken() != null){
-            this.portalAccount = clientSystemPojo.getPortalAccount();
-            this.jwtToken = clientSystemPojo.getPortalAccount().getJwtToken();
-        }
-    }
 }

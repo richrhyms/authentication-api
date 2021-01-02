@@ -100,11 +100,11 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     }
     @Transactional
     @Override
-    public ClientSystemPojo getAuthenticatedClient(String username) throws UsernameNotFoundException {
-        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
+    public ClientSystem getAuthenticatedClient(String username) throws UsernameNotFoundException {
+//        ClientSystem user =
+//        ClientSystemPojo pojo = new ClientSystemPojo(user);
+//        pojo.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(pojo.getJwtToken()).getTime()));
+        return clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
-        ClientSystemPojo pojo = new ClientSystemPojo(user);
-        pojo.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(pojo.getJwtToken()).getTime()));
-        return pojo;
     }
 }
