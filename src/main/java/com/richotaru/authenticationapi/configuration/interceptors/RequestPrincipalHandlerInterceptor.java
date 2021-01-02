@@ -7,6 +7,7 @@ package com.richotaru.authenticationapi.configuration.interceptors;
 
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
 import com.richotaru.authenticationapi.service.ClientSystemService;
+import com.richotaru.authenticationapi.service.PortalAccountService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -34,12 +34,14 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
 
     private final ApplicationContext applicationContext;
     private final JwtUtils jwtUtils;
-    private final ClientSystemService clientSystemService;
+    private final PortalAccountService portalAccountService;
 
-    public RequestPrincipalHandlerInterceptor(ApplicationContext applicationContext, JwtUtils jwtUtils, ClientSystemService clientSystemService) {
+    public RequestPrincipalHandlerInterceptor(ApplicationContext applicationContext,
+                                              JwtUtils jwtUtils,
+                                              PortalAccountService portalAccountService) {
         this.applicationContext = applicationContext;
         this.jwtUtils = jwtUtils;
-        this.clientSystemService = clientSystemService;
+        this.portalAccountService = portalAccountService;
     }
 
     public static FactoryBean<RequestPrincipal> requestPrincipal() {
@@ -83,7 +85,7 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
                 }
 
                 if(user !=null){
-                    user.setIdAddress(ipAddress);
+                    user.setIpAddress(ipAddress);
                     applicationContext.getAutowireCapableBeanFactory().autowireBean(user);
                     currentRequestAttributes.setAttribute(RequestPrincipal.class.getName(),
                             user,
@@ -112,7 +114,7 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
         if (org.springframework.util.StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             String jwt = bearerToken.substring(7);
             String clientName = jwtUtils.extractUsername(jwt);
-            return new RequestPrincipal(clientSystemService.getAuthenticatedClient(clientName));
+            return new RequestPrincipal(portalAccountService.getAuthenticatedAccount(clientName));
         }
         return null;
     }

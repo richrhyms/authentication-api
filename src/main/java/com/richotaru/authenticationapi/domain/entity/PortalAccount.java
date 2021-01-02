@@ -34,10 +34,4 @@ public class PortalAccount extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType. STRING)
     public AccountTypeConstant accountType;
-////    @OneToOne(mappedBy = "portalAccount")
-//    @OneToOne
-//    private ClientSystem clientSystem;
-////    @OneToOne(mappedBy = "portalAccount")
-//    @OneToOne
-//    private  ClientUser clientUser;
 }

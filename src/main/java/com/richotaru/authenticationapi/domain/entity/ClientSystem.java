@@ -28,7 +28,4 @@ public class ClientSystem extends BaseEntity{
     private PortalAccount portalAccount;
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "clientSystem", targetEntity = ClientUser.class)
     private List<ClientUser> users = new ArrayList<>();
-//    @OneToOne(mappedBy = "clientSystem")
-//    @OneToOne
-//    private ClientUser clientUser;
 }

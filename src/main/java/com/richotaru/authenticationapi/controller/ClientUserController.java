@@ -56,10 +56,6 @@ public class ClientUserController {
     public ResponseEntity<ClientUserPojo> createClientUser(@RequestBody ClientUserDto dto) throws Exception {
         return ResponseEntity.ok(clientUserService.createClientUser(dto));
     }
-    @PostMapping("authenticate")
-    public ResponseEntity<ClientUserAuthPojo> authenticateClientUser(@RequestBody ClientUserAuthDto dto) throws Exception {
-        return ResponseEntity.ok(clientUserService.authenticateClientUser(dto));
-    }
     private List<ClientUserPojo> getClientUserPojos(List<ClientUser> clientUsers){
         return clientUsers.stream().map(ClientUserPojo::new).collect(Collectors.toList());
     }

@@ -8,6 +8,7 @@ import com.richotaru.authenticationapi.domain.entity.PortalAccount;
 import com.richotaru.authenticationapi.domain.enums.AccountTypeConstant;
 import com.richotaru.authenticationapi.domain.enums.GenericStatusConstant;
 import com.richotaru.authenticationapi.domain.enums.RoleConstant;
+import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -30,6 +32,9 @@ public class DefaultClientSystemSetup {
     private final PortalAccountRepository portalAccountRepository;
     private final SequenceGenerator sequenceGenerator;
     private final TransactionTemplate transactionTemplate;
+    private final PasswordEncoder passwordEncoder;
+    private final SettingService settingService;
+
     private JwtUtils jwtUtils;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -37,11 +42,13 @@ public class DefaultClientSystemSetup {
                                     PortalAccountRepository portalAccountRepository,
                                     @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
                                     TransactionTemplate transactionTemplate,
-                                    JwtUtils jwtUtils) {
+                                    PasswordEncoder passwordEncoder, SettingService settingService, JwtUtils jwtUtils) {
         this.clientSystemRepository = clientSystemRepository;
         this.portalAccountRepository = portalAccountRepository;
         this.sequenceGenerator = sequenceGenerator;
         this.transactionTemplate = transactionTemplate;
+        this.passwordEncoder = passwordEncoder;
+        this.settingService = settingService;
         this.jwtUtils = jwtUtils;
     }
 
@@ -57,8 +64,8 @@ public class DefaultClientSystemSetup {
                             logger.info("Creating Default Portal Account...");
                             PortalAccount portalAccount = new PortalAccount();
                             portalAccount.setDisplayName("System Admin");
-                            portalAccount.setUsername("Admin");
-                            portalAccount.setPassword("Admin");
+                            portalAccount.setUsername(settingService.getString("DEFAULT_CLIENT_USERNAME","Admin"));
+                            portalAccount.setPassword(passwordEncoder.encode(settingService.getString("DEFAULT_CLIENT_PASSWORD","admin")));
                             portalAccount.setAccountCode(sequenceGenerator.getNext());
                             portalAccount.setAccountType(AccountTypeConstant.CLIENT_SYSTEM);
                             portalAccount.setJwtToken(jwtUtils.generateToken(portalAccount.getUsername(), true));

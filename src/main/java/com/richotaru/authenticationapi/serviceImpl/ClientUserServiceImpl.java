@@ -40,28 +40,25 @@ public class ClientUserServiceImpl implements ClientUserService {
     private final PortalAccountService portalAccountService;
     private final Provider<RequestPrincipal> requestPrincipalProvider;
     private final SequenceGenerator sequenceGenerator;
-    private final JwtUtils jwtUtils;
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public ClientUserServiceImpl(ClientUserRepository clientUserRepository,
                                  ClientSystemRepository clientSystemRepository,
                                  PortalAccountService portalAccountService,
                                  Provider<RequestPrincipal> requestPrincipalProvider,
-                                 @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
-                                 JwtUtils jwtUtils) {
+                                 @PortalAccountCodeSequence SequenceGenerator sequenceGenerator) {
         this.clientUserRepository = clientUserRepository;
         this.clientSystemRepository = clientSystemRepository;
         this.portalAccountService = portalAccountService;
         this.requestPrincipalProvider = requestPrincipalProvider;
         this.sequenceGenerator = sequenceGenerator;
-        this.jwtUtils = jwtUtils;
     }
 
     @Transactional
     @Override
     public ClientUserPojo createClientUser(ClientUserDto dto) {
         try {
-            ClientSystem client = requestPrincipalProvider.get().getClient();
+            ClientSystem client = requestPrincipalProvider.get().getPortalAccount().getClient();
             Optional<ClientSystem> clientSystem = clientSystemRepository.findById(client.getId());
             AccountCreationDto creationDto = new AccountCreationDto();
             creationDto.setAccountType(AccountTypeConstant.CLIENT_USER);
@@ -94,33 +91,11 @@ public class ClientUserServiceImpl implements ClientUserService {
     }
     @Transactional
     @Override
-    public ClientUserAuthPojo authenticateClientUser(ClientUserAuthDto dto) throws UsernameNotFoundException {
-        ClientUser user = clientUserRepository.findClientUserByEmailAndStatus(dto.getUsername(),GenericStatusConstant.ACTIVE).orElseThrow(()
+    public ClientUser getClientUser(String emailAddress) throws UsernameNotFoundException {
+//        ClientUser user =
+//        ClientUserPojo pojo = new ClientUserPojo(user);
+//        pojo.setRoles(RoleConstant.getValidRolesAsSet(user.getPortalAccount().getRoles()));
+        return  clientUserRepository.findClientUserByEmailAndStatus(emailAddress, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
-
-        String jwtToken = user.getPortalAccount().getJwtToken();
-
-        if(!jwtUtils.validateToken(jwtToken, user.getEmail())) {
-            jwtToken = jwtUtils.generateToken(user.getPortalAccount().getUsername(), false);
-            PortalAccount portalAccount = user.getPortalAccount();
-            portalAccount.setJwtToken(jwtToken);
-            portalAccountService.savePortalAccount(portalAccount);
-        }
-
-        Date expirationDate = jwtUtils.extractExpiration(jwtToken);
-
-        ClientUserAuthPojo response = new ClientUserAuthPojo();
-        response.setJwtToken(jwtToken);
-        response.setExpirationDate(expirationDate);
-        return response;
-    }
-    @Transactional
-    @Override
-    public ClientUserPojo getAuthenticatedClientUser(String emailAddress) throws UsernameNotFoundException {
-        ClientUser user = clientUserRepository.findClientUserByEmailAndStatus(emailAddress, GenericStatusConstant.ACTIVE).orElseThrow(()
-                -> new UsernameNotFoundException("User not found"));
-        ClientUserPojo pojo = new ClientUserPojo(user);
-        pojo.setRoles(RoleConstant.getValidRolesAsSet(user.getPortalAccount().getRoles()));
-        return pojo;
     }
 }

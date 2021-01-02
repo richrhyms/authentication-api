@@ -3,7 +3,9 @@ package com.richotaru.authenticationapi.configuration.filters;
 
 import com.richotaru.authenticationapi.domain.entity.PortalAccount;
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
+import com.richotaru.authenticationapi.domain.model.pojo.PortalAccountPojo;
 import com.richotaru.authenticationapi.service.ClientSystemService;
+import com.richotaru.authenticationapi.service.PortalAccountService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
-    private ClientSystemService clientSystemService;
+    private PortalAccountService portalAccountService;
     @Autowired
     private ApplicationContext applicationContext;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -48,7 +50,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(jwt) && jwtUtils.validateToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             String clientName = jwtUtils.extractUsername(jwt);
             logger.info("USER NAME = " + clientName);
-            RequestPrincipal requestPrincipal = new RequestPrincipal(clientSystemService.getAuthenticatedClient(clientName));
+            RequestPrincipal requestPrincipal = new RequestPrincipal(portalAccountService.getAuthenticatedAccount(clientName));
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(requestPrincipal, jwt,
                     resolveRoles(requestPrincipal.getPortalAccount())));
             applicationContext.getAutowireCapableBeanFactory().autowireBean(requestPrincipal);
@@ -68,7 +70,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
         return null;
     }
 
-    private List<SimpleGrantedAuthority> resolveRoles(PortalAccount account) {
+    private List<SimpleGrantedAuthority> resolveRoles(PortalAccountPojo account) {
         return Arrays.stream(account.getRoles().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 }
