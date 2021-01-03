@@ -17,6 +17,8 @@ import com.richotaru.authenticationapi.service.PortalAccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +38,8 @@ public class PortalAccountController {
     private PortalAccountService portalAccountService;
     @Autowired
     private AppRepository appRepository;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
     @Public
     @GetMapping
@@ -55,11 +59,6 @@ public class PortalAccountController {
         QueryResults<PortalAccount> result = jpaQuery.fetchResults();
         return  new QueryResults<>(getPortalAccountPojos(result.getResults()),result.getLimit(),result.getOffset(),result.getTotal());
     }
-//    @Public
-//    @PostMapping
-//    public ResponseEntity<ClientUserPojo> createClientUser(@RequestBody ClientUserDto dto) throws Exception {
-//        return ResponseEntity.ok(portalAccountService.createClientUser(dto));
-//    }
     @Public
     @PostMapping("authenticate")
     public ResponseEntity<PortalAccountAuthPojo> authenticateClientUser(@RequestBody AccountAuthDto dto) throws Exception {

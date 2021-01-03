@@ -20,13 +20,17 @@ import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.Porta
 import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -96,6 +100,7 @@ public class PortalAccountServiceImpl implements PortalAccountService {
                 response.setJwtToken(jwtToken);
                 response.setExpirationDate(expirationDate);
                 response.setAccountTypeConstant(user.getAccountType());
+                response.setRoles(resolveRoles(user));
                 logger.info("Authenticated");
 
                 return response;
@@ -103,7 +108,6 @@ public class PortalAccountServiceImpl implements PortalAccountService {
         }catch (Exception e){
             e.printStackTrace();
         }
-
         throw new JwtException("Authentication Failed");
     }
 
@@ -128,5 +132,8 @@ public class PortalAccountServiceImpl implements PortalAccountService {
 
 
         return pojo;
+    }
+    private List<SimpleGrantedAuthority> resolveRoles(PortalAccount account) {
+        return Arrays.stream(account.getRoles().split(",")).map(SimpleGrantedAuthority::new).collect(Collectors.toList());
     }
 }
