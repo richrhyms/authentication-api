@@ -3,18 +3,17 @@ package com.richotaru.authenticationapi.domain.entity;
 import com.querydsl.core.annotations.QueryEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.data.relational.core.mapping.Table;
+import lombok.ToString;
+//import org.springframework.data.relational.core.mapping.Table;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Data
-@Entity(name="setting")
-//@Table
+@Entity
+@Table(name = "setting")
 @QueryEntity
+@ToString
 @EqualsAndHashCode(callSuper=false)
 public class Setting implements Serializable {
     @Id

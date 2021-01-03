@@ -75,12 +75,6 @@ public class ClientSystemController {
             throw  new Exception("Unable to create Client System at this time", e);
         }
     }
-    @Public
-    @PostMapping("authenticate")
-    public ResponseEntity<ClientSystemAuthPojo> authenticateClientSystem(@RequestBody ClientSystemAuthDto dto) throws Exception {
-        return ResponseEntity.ok(clientSystemService.authenticateClient(dto));
-    }
-
 
     private List<ClientSystemPojo> getClientSystemPojos(List<ClientSystem> clientSystems){
         return clientSystems.stream().map(ClientSystemPojo::new).collect(Collectors.toList());

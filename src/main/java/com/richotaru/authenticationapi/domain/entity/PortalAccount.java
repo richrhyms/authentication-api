@@ -6,15 +6,17 @@ import com.richotaru.authenticationapi.domain.enums.GenericStatusConstant;
 import com.richotaru.authenticationapi.domain.enums.RoleConstant;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
 
 
 @Data
-@Entity(name="portal_account")
-//@Table
+@Entity
+@Table(name="portal_account")
 @QueryEntity
+@ToString
 @EqualsAndHashCode(callSuper=false)
 public class PortalAccount extends BaseEntity {
     @Column(nullable = false)
@@ -32,10 +34,4 @@ public class PortalAccount extends BaseEntity {
     @Column(nullable = false)
     @Enumerated(EnumType. STRING)
     public AccountTypeConstant accountType;
-//    @OneToOne
-//    @JoinColumn(columnDefinition = "id")
-//    private ClientSystem clientSystem;
-//    @OneToOne
-//    @JoinColumn(columnDefinition = "id")
-//    private  ClientUser clientUser;
 }

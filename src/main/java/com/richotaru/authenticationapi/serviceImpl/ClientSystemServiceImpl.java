@@ -35,16 +35,13 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     private final ClientSystemRepository clientSystemRepository;
     private final PortalAccountService portalAccountService;
     private final SequenceGenerator sequenceGenerator;
-    private final JwtUtils jwtUtils;
 
     public ClientSystemServiceImpl(ClientSystemRepository clientSystemRepository,
                                    PortalAccountService portalAccountService,
-                                   @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
-                                   JwtUtils jwtUtils) {
+                                   @PortalAccountCodeSequence SequenceGenerator sequenceGenerator) {
         this.clientSystemRepository = clientSystemRepository;
         this.portalAccountService = portalAccountService;
         this.sequenceGenerator = sequenceGenerator;
-        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -73,38 +70,8 @@ public class ClientSystemServiceImpl implements ClientSystemService {
 
     @Transactional
     @Override
-    public ClientSystemAuthPojo authenticateClient(ClientSystemAuthDto dto) throws Exception {
-        logger.info("USERNAME::"+ dto.getUsername() +" Status" + GenericStatusConstant.ACTIVE);
-
-        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(dto.getUsername(), GenericStatusConstant.ACTIVE).orElseThrow(()
+    public ClientSystem getClient(String username) throws UsernameNotFoundException {
+        return clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
-        logger.info("STARTED");
-
-        String jwtToken = user.getPortalAccount().getJwtToken();
-
-        if(!jwtUtils.validateToken(jwtToken, user.getClientName())) {
-            jwtToken = jwtUtils.generateToken(user.getClientName(), true);
-            PortalAccount portalAccount = user.getPortalAccount();
-            portalAccount.setJwtToken(jwtToken);
-            portalAccountService.savePortalAccount(portalAccount);
-        }
-
-        Date expirationDate = jwtUtils.extractExpiration(jwtToken);
-
-        ClientSystemAuthPojo response = new ClientSystemAuthPojo();
-        response.setJwtToken(jwtToken);
-        response.setExpirationDate(expirationDate);
-        logger.info("RETURN");
-
-        return response;
-    }
-    @Transactional
-    @Override
-    public ClientSystemPojo getAuthenticatedClient(String username) throws UsernameNotFoundException {
-        ClientSystem user = clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
-                -> new UsernameNotFoundException("User not found"));
-        ClientSystemPojo pojo = new ClientSystemPojo(user);
-        pojo.setExpirationDate(new Timestamp(jwtUtils.extractExpiration(pojo.getJwtToken()).getTime()));
-        return pojo;
     }
 }

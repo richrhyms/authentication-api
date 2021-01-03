@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 public class BaseEntity implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     public Long id;
     public Timestamp dateCreated;
     public Timestamp lastUpdated;

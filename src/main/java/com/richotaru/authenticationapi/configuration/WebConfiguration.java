@@ -14,6 +14,7 @@ import com.richotaru.authenticationapi.configuration.interceptors.RequestPrincip
 import com.richotaru.authenticationapi.domain.enums.TimeFormatConstants;
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
 import com.richotaru.authenticationapi.service.ClientSystemService;
+import com.richotaru.authenticationapi.service.PortalAccountService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
@@ -48,22 +49,21 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final ConstraintValidatorFactory constraintValidatorFactory;
     private final JwtUtils jwtUtils;
-    private final ClientSystemService clientSystemService;
+    private final PortalAccountService portalAccountService;
 
     public WebConfiguration(ApplicationContext applicationContext,
                             ConstraintValidatorFactory constraintValidatorFactory,
-                            JwtUtils jwtUtils,
-                            ClientSystemService clientSystemService) {
+                            JwtUtils jwtUtils,PortalAccountService portalAccountService) {
         this.applicationContext = applicationContext;
         this.constraintValidatorFactory = constraintValidatorFactory;
 
         this.jwtUtils = jwtUtils;
-        this.clientSystemService = clientSystemService;
+        this.portalAccountService = portalAccountService;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils,clientSystemService));
+        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils, portalAccountService));
         registry.addInterceptor(new AccessConstraintHandlerInterceptor(applicationContext));
         registry.addInterceptor(localeChangeInterceptor());
     }
