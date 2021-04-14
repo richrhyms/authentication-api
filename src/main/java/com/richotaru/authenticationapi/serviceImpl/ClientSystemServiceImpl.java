@@ -1,28 +1,27 @@
 package com.richotaru.authenticationapi.serviceImpl;
-import com.richotaru.authenticationapi.domain.enums.AccountTypeConstant;
-import com.google.common.collect.Lists;
+
 import com.richotaru.authenticationapi.dao.ClientSystemRepository;
-import com.richotaru.authenticationapi.domain.entity.ClientSystem;
-import com.richotaru.authenticationapi.domain.entity.PortalAccount;
-import com.richotaru.authenticationapi.domain.enums.GenericStatusConstant;
-import com.richotaru.authenticationapi.domain.model.dto.AccountCreationDto;
-import com.richotaru.authenticationapi.domain.model.dto.ClientSystemAuthDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
-import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemAuthPojo;
+import com.richotaru.authenticationapi.domain.model.dto.ClientSystemUpdateDto;
 import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
+import com.richotaru.authenticationapi.entity.ClientSystem;
+import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.service.ClientSystemService;
-import com.richotaru.authenticationapi.service.PortalAccountService;
-import com.richotaru.authenticationapi.utils.JwtUtils;
+import com.richotaru.authenticationapi.service.WorkSpaceService;
+import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -33,45 +32,80 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ClientSystemRepository clientSystemRepository;
-    private final PortalAccountService portalAccountService;
+    private final WorkSpaceService workSpaceService;
     private final SequenceGenerator sequenceGenerator;
+    private final SettingService settingService;
 
     public ClientSystemServiceImpl(ClientSystemRepository clientSystemRepository,
-                                   PortalAccountService portalAccountService,
+                                   WorkSpaceService workSpaceService,
+                                   SettingService settingService,
                                    @PortalAccountCodeSequence SequenceGenerator sequenceGenerator) {
         this.clientSystemRepository = clientSystemRepository;
-        this.portalAccountService = portalAccountService;
+        this.workSpaceService = workSpaceService;
         this.sequenceGenerator = sequenceGenerator;
-    }
-
-    @Override
-    public ClientSystemPojo createClientSystem(ClientSystemDto dto) {
-        AccountCreationDto creationDto = new AccountCreationDto();
-        creationDto.setAccountType(AccountTypeConstant.CLIENT_SYSTEM);
-        creationDto.setDisplayName(dto.getDisplayName());
-        creationDto.setUsername(dto.getClientName());
-        creationDto.setPassword(dto.getClientKey());
-        creationDto.setRoles(dto.getRoles());
-        PortalAccount portalAccount = portalAccountService.createPortalAccount(creationDto, true);
-
-        ClientSystem clientSystem = new ClientSystem();
-        clientSystem.setClientName(dto.getClientName());
-        clientSystem.setClientCode(sequenceGenerator.getNext());
-        clientSystem.setDisplayName(dto.getDisplayName());
-        clientSystem.setUsers(Lists.newArrayList());
-        clientSystem.setDateCreated(new Timestamp(new java.util.Date().getTime()));
-        clientSystem.setLastUpdated(new Timestamp(new java.util.Date().getTime()));
-        clientSystem.setStatus(GenericStatusConstant.ACTIVE);
-        clientSystem.setPortalAccount(portalAccount);
-
-        ClientSystem created = clientSystemRepository.save(clientSystem);
-        return new ClientSystemPojo(created);
+        this.settingService = settingService;
     }
 
     @Transactional
     @Override
-    public ClientSystem getClient(String username) throws UsernameNotFoundException {
-        return clientSystemRepository.findByClientNameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
-                -> new UsernameNotFoundException("User not found"));
+    public ClientSystemPojo createClientSystem(ClientSystemDto dto) {
+        if(!isValidKey(dto.getClientKey())){
+            throw  new IllegalArgumentException(" Client Key is Invalid");
+        }
+
+        ClientSystem clientSystem = new ClientSystem();
+        clientSystem.setCode(sequenceGenerator.getNext());
+        clientSystem.setDisplayName(dto.getDisplayName());
+        clientSystem.setCreatedAt(LocalDateTime.now());
+        clientSystem.setLastUpdatedAt(LocalDateTime.now());
+        clientSystem.setWorkSpaceAccountType(dto.getWorkSpaceAccountType());
+        clientSystem.setAccessMode(dto.getAccessMode());
+        clientSystem.setSystemType(dto.getSystemType());
+        clientSystem.setStatus(GenericStatusConstant.ACTIVE);
+
+        ClientSystem created = clientSystemRepository.save(clientSystem);
+
+        return new ClientSystemPojo(created);
+    }
+    @Transactional
+    @Override
+    public ClientSystemPojo updateClientSystem(Long clientSystemId, ClientSystemUpdateDto dto) {
+        if(!isValidKey(dto.getClientKey())){
+            throw  new IllegalArgumentException(" Client Key is Invalid");
+        }
+
+        ClientSystem clientSystem = clientSystemRepository.findById(clientSystemId)
+                .orElseThrow(() -> new IllegalArgumentException("Client System not found!"));
+
+        if(dto.getDisplayName() != null){
+            clientSystem.setDisplayName(dto.getDisplayName());
+        }
+        if(dto.getAccessMode() != null){
+            clientSystem.setAccessMode(dto.getAccessMode());
+        }
+        if(dto.getWorkSpaceAccountType() != null){
+            clientSystem.setWorkSpaceAccountType(dto.getWorkSpaceAccountType());
+        }
+        if(dto.getSystemType() != null){
+            clientSystem.setSystemType(dto.getSystemType());
+        }
+
+        if(dto.getStatus() != null){
+            clientSystem.setStatus(dto.getStatus());
+
+            if(dto.getStatus() == GenericStatusConstant.INACTIVE){
+                clientSystem.setDateDeactivated(new Date());
+            }
+        }
+        clientSystem.setLastUpdatedAt(LocalDateTime.now());
+
+        return new ClientSystemPojo(clientSystemRepository.save(clientSystem));
+    }
+
+    @Override
+    public boolean isValidKey(String clientKey) {
+        String valid_client_keys = settingService.getString("VALID_CLIENT_KEYS", "ABCXYZ123789,123789ABCXYZ");
+        Set<String> validKeyList = new HashSet<>(Arrays.asList(valid_client_keys.split(",")));
+        return validKeyList.contains(clientKey);
     }
 }

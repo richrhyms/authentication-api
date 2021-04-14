@@ -2,12 +2,12 @@ package com.richotaru.authenticationapi.configuration.startup;
 
 import com.google.common.collect.Lists;
 import com.richotaru.authenticationapi.dao.ClientSystemRepository;
-import com.richotaru.authenticationapi.dao.PortalAccountRepository;
+import com.richotaru.authenticationapi.dao.WorkSpaceRepository;
 import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import com.richotaru.authenticationapi.domain.entity.PortalAccount;
 import com.richotaru.authenticationapi.domain.enums.AccountTypeConstant;
-import com.richotaru.authenticationapi.domain.enums.GenericStatusConstant;
 import com.richotaru.authenticationapi.domain.enums.RoleConstant;
+import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
@@ -29,7 +29,7 @@ import java.sql.Timestamp;
 @Component
 public class DefaultClientSystemSetup {
     private final ClientSystemRepository clientSystemRepository;
-    private final PortalAccountRepository portalAccountRepository;
+    private final WorkSpaceRepository workSpaceRepository;
     private final SequenceGenerator sequenceGenerator;
     private final TransactionTemplate transactionTemplate;
     private final PasswordEncoder passwordEncoder;
@@ -39,12 +39,12 @@ public class DefaultClientSystemSetup {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public DefaultClientSystemSetup(ClientSystemRepository clientSystemRepository,
-                                    PortalAccountRepository portalAccountRepository,
+                                    WorkSpaceRepository workSpaceRepository,
                                     @PortalAccountCodeSequence SequenceGenerator sequenceGenerator,
                                     TransactionTemplate transactionTemplate,
                                     PasswordEncoder passwordEncoder, SettingService settingService, JwtUtils jwtUtils) {
         this.clientSystemRepository = clientSystemRepository;
-        this.portalAccountRepository = portalAccountRepository;
+        this.workSpaceRepository = workSpaceRepository;
         this.sequenceGenerator = sequenceGenerator;
         this.transactionTemplate = transactionTemplate;
         this.passwordEncoder = passwordEncoder;
@@ -58,7 +58,7 @@ public class DefaultClientSystemSetup {
         transactionTemplate.execute(tx -> {
             try {
                 logger.info("Searching for Default Portal Account...");
-                portalAccountRepository.findByUsernameAndStatus("admin", GenericStatusConstant.ACTIVE)
+                workSpaceRepository.findByUsernameAndStatus("admin", GenericStatusConstant.ACTIVE)
                         .orElseGet(() -> {
                             logger.warn("Default Portal Account Not Found");
                             logger.info("Creating Default Portal Account...");
@@ -74,7 +74,7 @@ public class DefaultClientSystemSetup {
                             portalAccount.setLastUpdated(new Timestamp(new java.util.Date().getTime()));
                             portalAccount.setStatus(GenericStatusConstant.ACTIVE);
 
-                            portalAccountRepository.save(portalAccount);
+                            workSpaceRepository.save(portalAccount);
 
                             logger.info("Creating Default Client System");
                             ClientSystem clientSystem = new ClientSystem();

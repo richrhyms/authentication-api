@@ -1,7 +1,7 @@
 package com.richotaru.authenticationapi.serviceImpl;
 
 import com.richotaru.authenticationapi.dao.SettingRepository;
-import com.richotaru.authenticationapi.domain.entity.Setting;
+import com.richotaru.authenticationapi.entity.Setting;
 import com.richotaru.authenticationapi.service.SettingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import javax.inject.Named;

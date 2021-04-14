@@ -13,8 +13,7 @@ import com.richotaru.authenticationapi.configuration.interceptors.AccessConstrai
 import com.richotaru.authenticationapi.configuration.interceptors.RequestPrincipalHandlerInterceptor;
 import com.richotaru.authenticationapi.domain.enums.TimeFormatConstants;
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
-import com.richotaru.authenticationapi.service.ClientSystemService;
-import com.richotaru.authenticationapi.service.PortalAccountService;
+import com.richotaru.authenticationapi.service.WorkSpaceService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
@@ -49,21 +48,21 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final ConstraintValidatorFactory constraintValidatorFactory;
     private final JwtUtils jwtUtils;
-    private final PortalAccountService portalAccountService;
+    private final WorkSpaceService workSpaceService;
 
     public WebConfiguration(ApplicationContext applicationContext,
                             ConstraintValidatorFactory constraintValidatorFactory,
-                            JwtUtils jwtUtils,PortalAccountService portalAccountService) {
+                            JwtUtils jwtUtils, WorkSpaceService workSpaceService) {
         this.applicationContext = applicationContext;
         this.constraintValidatorFactory = constraintValidatorFactory;
 
         this.jwtUtils = jwtUtils;
-        this.portalAccountService = portalAccountService;
+        this.workSpaceService = workSpaceService;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils, portalAccountService));
+        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils, workSpaceService));
         registry.addInterceptor(new AccessConstraintHandlerInterceptor(applicationContext));
         registry.addInterceptor(localeChangeInterceptor());
     }

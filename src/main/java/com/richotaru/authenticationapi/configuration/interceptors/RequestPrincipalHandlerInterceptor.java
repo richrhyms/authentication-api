@@ -6,8 +6,7 @@
 package com.richotaru.authenticationapi.configuration.interceptors;
 
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
-import com.richotaru.authenticationapi.service.ClientSystemService;
-import com.richotaru.authenticationapi.service.PortalAccountService;
+import com.richotaru.authenticationapi.service.WorkSpaceService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -34,14 +33,14 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
 
     private final ApplicationContext applicationContext;
     private final JwtUtils jwtUtils;
-    private final PortalAccountService portalAccountService;
+    private final WorkSpaceService workSpaceService;
 
     public RequestPrincipalHandlerInterceptor(ApplicationContext applicationContext,
                                               JwtUtils jwtUtils,
-                                              PortalAccountService portalAccountService) {
+                                              WorkSpaceService workSpaceService) {
         this.applicationContext = applicationContext;
         this.jwtUtils = jwtUtils;
-        this.portalAccountService = portalAccountService;
+        this.workSpaceService = workSpaceService;
     }
 
     public static FactoryBean<RequestPrincipal> requestPrincipal() {
@@ -114,7 +113,7 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
         if (org.springframework.util.StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             String jwt = bearerToken.substring(7);
             String clientName = jwtUtils.extractUsername(jwt);
-            return new RequestPrincipal(portalAccountService.getAuthenticatedAccount(clientName));
+            return new RequestPrincipal(workSpaceService.getAuthenticatedAccount(clientName));
         }
         return null;
     }

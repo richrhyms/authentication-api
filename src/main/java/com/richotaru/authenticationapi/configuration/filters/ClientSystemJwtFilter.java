@@ -1,11 +1,9 @@
 package com.richotaru.authenticationapi.configuration.filters;
 
 
-import com.richotaru.authenticationapi.domain.entity.PortalAccount;
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
 import com.richotaru.authenticationapi.domain.model.pojo.PortalAccountPojo;
-import com.richotaru.authenticationapi.service.ClientSystemService;
-import com.richotaru.authenticationapi.service.PortalAccountService;
+import com.richotaru.authenticationapi.service.WorkSpaceService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +12,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.inject.Named;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -36,7 +32,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
-    private PortalAccountService portalAccountService;
+    private WorkSpaceService workSpaceService;
     @Autowired
     private ApplicationContext applicationContext;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -50,7 +46,7 @@ public class ClientSystemJwtFilter extends OncePerRequestFilter {
         if (StringUtils.hasText(jwt) && jwtUtils.validateToken(jwt) && SecurityContextHolder.getContext().getAuthentication() == null) {
             String clientName = jwtUtils.extractUsername(jwt);
             logger.info("USER NAME = " + clientName);
-            RequestPrincipal requestPrincipal = new RequestPrincipal(portalAccountService.getAuthenticatedAccount(clientName));
+            RequestPrincipal requestPrincipal = new RequestPrincipal(workSpaceService.getAuthenticatedAccount(clientName));
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(requestPrincipal, jwt,
                     resolveRoles(requestPrincipal.getPortalAccount())));
             applicationContext.getAutowireCapableBeanFactory().autowireBean(requestPrincipal);
