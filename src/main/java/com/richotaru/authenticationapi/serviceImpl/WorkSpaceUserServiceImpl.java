@@ -32,7 +32,6 @@ import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -115,10 +114,10 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             workSpaceMembershipRepository.save(membership);
 
 
-            List<WorkSpaceMembership> memberships = new ArrayList<>();
-            memberships.add(membership);
-            user.setWorkSpaceMemberships(memberships);
-            workSpaceUserRepository.save(user);
+//            List<WorkSpaceMembership> memberships = new ArrayList<>();
+//            memberships.add(membership);
+//            user.(memberships);
+//            workSpaceUserRepository.save(user);
 
             logger.info("USER ID::" + user.getUserId()+ "WorkSpace INFO {}", workSpace);
             return new WorkSpaceUserPojo(user);
@@ -154,15 +153,15 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
         WorkSpaceUser user = workSpaceUserRepository.findByUsernameAndStatus(dto.getUsername(),
                 GenericStatusConstant.ACTIVE).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (clientSystem.getAccessMode() == AccessModeConstant.STRICT) {
-            user.getWorkSpaceMemberships().stream()
-                    .filter(it-> it.getWorkSpace().equals(workSpace_to_access))
-                    .findFirst()
-                    .orElseThrow(()->
+            workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access,user,
+                   GenericStatusConstant.ACTIVE).orElseThrow(()->
                         new IllegalArgumentException(" '"+user.getUsername()
                                 +"' cannot access this workspace in STRICT mode")
                     );
         } else{
-            user.getWorkSpaceMemberships().stream()
+            List<WorkSpaceMembership> user_workspaces = workSpaceMembershipRepository
+                    .findAllByWorkSpaceUserAndStatus(user, GenericStatusConstant.ACTIVE);
+            user_workspaces.stream()
                     .filter(it-> it.getWorkSpace()
                             .getClientSystem()
                             .equals(workSpace_to_access.getClientSystem()))
@@ -212,16 +211,18 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
         WorkSpaceUser user = workSpaceUserRepository.findByUsernameAndStatus(username,
                 GenericStatusConstant.ACTIVE).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        WorkSpace workSpace = workSpaceRepository
+        WorkSpace workSpace_to_access = workSpaceRepository
                 .findByCodeAndStatus(workspaceCode, GenericStatusConstant.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("Workspace not found!!"));
 
-        user.getWorkSpaceMemberships().stream()
-                .filter(it-> it.getWorkSpace().equals(workSpace)).findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("User is not a Member of this work space!"));
+        workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access,user,
+                GenericStatusConstant.ACTIVE).orElseThrow(()->
+                new IllegalArgumentException(" '"+user.getUsername()
+                        +"' cannot access this workspace in STRICT mode")
+        );
 
         WorkSpaceUserPojo pojo = new WorkSpaceUserPojo(user);
-        pojo.setWorkSpace(workSpace);
+        pojo.setWorkSpace(workSpace_to_access);
 
         return pojo;
     }

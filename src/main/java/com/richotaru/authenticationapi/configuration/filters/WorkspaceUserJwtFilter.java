@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class ClientSystemJwtFilter extends OncePerRequestFilter {
+public class WorkspaceUserJwtFilter extends OncePerRequestFilter {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String WORK_SPACE_CODE_HEADER = "WorkspaceCode";
     @Autowired

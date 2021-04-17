@@ -96,6 +96,7 @@ public class WebConfiguration implements WebMvcConfigurer {
 
             @Override
             public void serialize(JavassistLazyInitializer value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+                gen.writeObject(Collections.singletonMap("id", value.getIdentifier()));
                 gen.writeNull();
             }
         });
@@ -104,7 +105,7 @@ public class WebConfiguration implements WebMvcConfigurer {
             @Override
             public void serialize(HibernateProxy value, JsonGenerator gen, SerializerProvider provider) throws IOException {
                 gen.writeObject(Collections.singletonMap("id", value.getHibernateLazyInitializer().getIdentifier()));
-//                gen.writeNull();
+                gen.writeNull();
             }
         });
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

@@ -15,6 +15,8 @@ import com.richotaru.authenticationapi.service.WorkSpaceUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +35,7 @@ public class WorkSpaceUserController {
     private WorkSpaceUserService workSpaceUserService;
     @Autowired
     private AppRepository appRepository;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Public
     @GetMapping
@@ -93,6 +96,7 @@ public class WorkSpaceUserController {
         });
         jpaQuery.limit(optionalLimit.orElse(100));
         jpaQuery.offset(optionalOffset.orElse(0));
+
         return  jpaQuery.fetchResults();
     }
     @Public

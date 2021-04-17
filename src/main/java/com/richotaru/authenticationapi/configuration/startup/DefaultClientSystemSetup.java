@@ -24,8 +24,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -91,7 +89,7 @@ public class DefaultClientSystemSetup {
                             clientSystem.setDisplayName("AUTHENTICATION API :: DEFAULT CLIENT");
 
                             clientSystemRepository.save(clientSystem);
-
+//                            settingService.getString("DEFAULT_CLIENT_CODE",clientSystem.getCode());
 
                             logger.info("Creating Default Work Space...");
 
@@ -104,6 +102,8 @@ public class DefaultClientSystemSetup {
                             workSpace.setLastUpdatedAt(LocalDateTime.now());
                             workSpace.setStatus(GenericStatusConstant.ACTIVE);
                             workSpaceRepository.save(workSpace);
+
+//                            settingService.getString("DEFAULT_WORKSPACE_CODE",workSpace.getCode());
 
                             logger.info("Creating Default Work Space User...");
                             WorkSpaceUser workSpaceUser = new WorkSpaceUser();
@@ -140,20 +140,21 @@ public class DefaultClientSystemSetup {
                             workSpaceMembershipRepository.save(membership);
 
 
-                            logger.info("Updating Workspace user Membership info...");
-                            List<WorkSpaceMembership> memberships = new ArrayList<>();
-                            memberships.add(membership);
-                            workSpaceUser.setWorkSpaceMemberships(memberships);
-                            workSpaceUserRepository.save(workSpaceUser);
+//                            logger.info("Updating Workspace user Membership info...");
+//                            List<WorkSpaceMembership> memberships = new ArrayList<>();
+//                            memberships.add(membership);
+//                            workSpaceUser.setWorkSpaceMemberships(memberships);
+//                            workSpaceUserRepository.save(workSpaceUser);
 
 
-                            logger.info("Default Workspace user Created {}",workSpaceUser);
+                            logger.info("Default Workspace user Created {}", workSpaceUser.getDisplayName());
                             return null;
                         });
 
             } catch (Exception ex) {
                 logger.error(ex.getMessage());
             }
+            logger.info("Found Default Workspace User...");
             return null;
         });
     }

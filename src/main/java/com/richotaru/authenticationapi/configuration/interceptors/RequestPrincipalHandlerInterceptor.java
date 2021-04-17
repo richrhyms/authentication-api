@@ -22,8 +22,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import static com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter.AUTHORIZATION_HEADER;
-import static com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter.WORK_SPACE_CODE_HEADER;
+import static com.richotaru.authenticationapi.configuration.filters.WorkspaceUserJwtFilter.AUTHORIZATION_HEADER;
+import static com.richotaru.authenticationapi.configuration.filters.WorkspaceUserJwtFilter.WORK_SPACE_CODE_HEADER;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>

@@ -3,8 +3,9 @@ package com.richotaru.authenticationapi.configuration;
 
 
 
-import com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter;
+import com.richotaru.authenticationapi.configuration.filters.WorkspaceUserJwtFilter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -34,7 +35,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers("/work-space-user/authenticate").permitAll()
+                .antMatchers(HttpMethod.GET,"/work-space-user").permitAll()
+                .antMatchers(HttpMethod.POST,"/work-space-user/authenticate").permitAll()
                 .anyRequest().authenticated();
         http.addFilterBefore(clientSystemJwtFilter(), UsernamePasswordAuthenticationFilter.class);
     }
@@ -48,7 +50,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
     @Bean
-    public ClientSystemJwtFilter clientSystemJwtFilter() {
-        return new ClientSystemJwtFilter();
+    public WorkspaceUserJwtFilter clientSystemJwtFilter() {
+        return new WorkspaceUserJwtFilter();
     }
 }
