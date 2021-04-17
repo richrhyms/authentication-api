@@ -36,10 +36,10 @@ public class ServiceLayerConfiguration {
         hibernateJpaVendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQL95Dialect");
         factoryBean.setJpaVendorAdapter(hibernateJpaVendorAdapter);
         Properties props = new Properties();
-        props.put("showSql", true);
+        props.put("showSql", false);
         props.put("formatSql", true);
         props.put("databasePlatform", Database.POSTGRESQL);
-        props.put("hibernate.hbm2ddl.auto", "create-drop");
+        props.put("hibernate.hbm2ddl.auto", "update");
         factoryBean.setJpaProperties(props);
         factoryBean.setPackagesToScan("com.richotaru.authenticationapi.entity");
 

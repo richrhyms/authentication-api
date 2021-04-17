@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -28,7 +28,7 @@ public class WorkSpaceUserDto {
     private String phoneNumber;
     @NotBlank(message = "Email cannot be empty")
     private String email;
-    private LocalDateTime dob;
+    private LocalDate dob;
     private String gender;
 
 }

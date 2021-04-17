@@ -8,6 +8,7 @@ import com.richotaru.authenticationapi.domain.model.dto.WorkSpaceCreationDto;
 import com.richotaru.authenticationapi.domain.model.dto.WorkSpaceUpdateDto;
 import com.richotaru.authenticationapi.entity.QWorkSpace;
 import com.richotaru.authenticationapi.entity.WorkSpace;
+import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.enumeration.WorkSpaceTypeConstant;
 import com.richotaru.authenticationapi.service.WorkSpaceService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -48,7 +49,8 @@ public class WorkSpaceController {
                                                                @RequestParam("acountType")Optional<String> optionalAccountType,
                                                                @RequestParam("clientSystemCode")Optional<String> optionalClientSystemCode){
         JPAQuery<WorkSpace> jpaQuery = appRepository.startJPAQuery(QWorkSpace.workSpace);
-
+        jpaQuery.where(QWorkSpace.workSpace.type.ne(WorkSpaceTypeConstant.DEFAULT));
+        jpaQuery.where(QWorkSpace.workSpace.status.eq(GenericStatusConstant.ACTIVE));
         optionalAccountName.ifPresent(name->{
             jpaQuery.where(QWorkSpace.workSpace.name.equalsIgnoreCase(name));
         });
@@ -75,7 +77,7 @@ public class WorkSpaceController {
             return ResponseEntity.status(HttpStatus.CREATED).body(workSpaceService.createWorkSpace(dto));
         }catch (Exception e){
             e.printStackTrace();
-            throw  new Exception("Unable to create Portal Account at this time", e);
+            throw  new Exception("Unable to create Portal Account at this time: "+ e.getMessage());
         }
     }
     @PatchMapping("/{id}")

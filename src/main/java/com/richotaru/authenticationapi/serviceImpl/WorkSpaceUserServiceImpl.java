@@ -32,8 +32,10 @@ import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -88,14 +90,19 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                        .orElseThrow(()-> new IllegalArgumentException(" Cannot determine workspace"));
             }
 
+            Optional<WorkSpaceUser> existingUser = workSpaceUserRepository.findByUsernameAndStatus(dto.getUsername(),
+                    GenericStatusConstant.ACTIVE);
 
+            if(existingUser.isPresent()){
+                throw  new IllegalArgumentException(" Workspace User with this USERNAME already exist");
+            }
             WorkSpaceUser user = new WorkSpaceUser();
             BeanUtils.copyProperties(dto, user);
 
 
 
 
-            user.setDateOfBirth(Timestamp.valueOf(dto.getDob()));
+            user.setDateOfBirth(Timestamp.valueOf(LocalDateTime.of(dto.getDob(), LocalTime.now())));
             user.setCreatedAt(LocalDateTime.now());
             user.setUserId(sequenceGenerator.getNext());
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -112,12 +119,6 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             membership.setStatus(GenericStatusConstant.ACTIVE);
             membership.setCreatedBy(requestPrincipalProvider.get().getWorkSpaceUser().getUser());
             workSpaceMembershipRepository.save(membership);
-
-
-//            List<WorkSpaceMembership> memberships = new ArrayList<>();
-//            memberships.add(membership);
-//            user.(memberships);
-//            workSpaceUserRepository.save(user);
 
             logger.info("USER ID::" + user.getUserId()+ "WorkSpace INFO {}", workSpace);
             return new WorkSpaceUserPojo(user);
@@ -177,13 +178,14 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             response.setUsername(user.getUsername());
             response.setValid(true);
             response.setAccessMode(clientSystem.getAccessMode());
+            response.setWorkspaceCode(workSpace_to_access.getCode());
 
 
             if(user.getJwtToken().isPresent() && jwtUtils.validateToken(user.getJwtToken().get())){
                 String jwtToken = user.getJwtToken().get();
                 response.setJwtToken(jwtToken);
                 response.setExpirationDate(jwtUtils.extractExpiration(jwtToken));
-                logger.info("Authenticated");
+                logger.info("Authenticated 1");
                 return response;
             }
             if(passwordEncoder.matches(dto.getPassword(), user.getPassword())){
@@ -195,7 +197,7 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                 Date expirationDate = jwtUtils.extractExpiration(jwtToken);
                 response.setJwtToken(jwtToken);
                 response.setExpirationDate(expirationDate);
-                logger.info("Authenticated");
+                logger.info("Authenticated 2");
                 return response;
             }
             throw new JwtException("Authentication Failed");
@@ -212,15 +214,16 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                 GenericStatusConstant.ACTIVE).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         WorkSpace workSpace_to_access = workSpaceRepository
-                .findByCodeAndStatus(workspaceCode, GenericStatusConstant.ACTIVE)
+                .findByCodeAndStatus_fetchJoinClientSystem(workspaceCode, GenericStatusConstant.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("Workspace not found!!"));
 
-        workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access,user,
-                GenericStatusConstant.ACTIVE).orElseThrow(()->
-                new IllegalArgumentException(" '"+user.getUsername()
-                        +"' cannot access this workspace in STRICT mode")
-        );
-
+        if (workSpace_to_access.getClientSystem().getAccessMode() == AccessModeConstant.STRICT) {
+            workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access, user,
+                    GenericStatusConstant.ACTIVE).orElseThrow(() ->
+                    new IllegalArgumentException(" '" + user.getUsername()
+                            + "' cannot access this workspace in STRICT mode")
+            );
+        }
         WorkSpaceUserPojo pojo = new WorkSpaceUserPojo(user);
         pojo.setWorkSpace(workSpace_to_access);
 

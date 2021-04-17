@@ -4,13 +4,14 @@ import com.querydsl.core.QueryResults;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.richotaru.authenticationapi.dao.AppRepository;
 import com.richotaru.authenticationapi.domain.annotations.Public;
+import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
 import com.richotaru.authenticationapi.domain.model.dto.ClientSystemUpdateDto;
+import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import com.richotaru.authenticationapi.entity.ClientSystem;
 import com.richotaru.authenticationapi.entity.QClientSystem;
-import com.richotaru.authenticationapi.domain.model.dto.ClientSystemDto;
-import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import com.richotaru.authenticationapi.enumeration.AccessModeConstant;
 import com.richotaru.authenticationapi.enumeration.ClientSystemTypeConstant;
+import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.enumeration.WorkSpaceAccountTypeConstant;
 import com.richotaru.authenticationapi.serviceImpl.ClientSystemServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,6 +58,8 @@ public class ClientSystemController {
                                                              @RequestParam("displayName")Optional<String> optionalDisplayName,
                                                              @RequestParam("clientCode")Optional<String> optionalClientCode){
         JPAQuery<ClientSystem> jpaQuery = appRepository.startJPAQuery(QClientSystem.clientSystem);
+        jpaQuery.where(QClientSystem.clientSystem.systemType.ne(ClientSystemTypeConstant.DEFAULT));
+        jpaQuery.where(QClientSystem.clientSystem.status.eq(GenericStatusConstant.ACTIVE));
 
         optionalSystemType.ifPresent(type->{
             jpaQuery.where(QClientSystem.clientSystem.systemType.eq(ClientSystemTypeConstant.valueOf(type)));
@@ -85,7 +88,7 @@ public class ClientSystemController {
             return ResponseEntity.status(HttpStatus.CREATED).body(clientSystemService.createClientSystem(dto));
         }catch (Exception e){
             e.printStackTrace();
-            throw  new Exception("Unable to create Client System at this time", e);
+            throw  new Exception("Unable to create Client System at this time: "+ e.getMessage());
         }
     }
 
@@ -98,7 +101,7 @@ public class ClientSystemController {
             return ResponseEntity.status(HttpStatus.OK).body(clientSystemService.updateClientSystem(id,dto));
         }catch (Exception e){
             e.printStackTrace();
-            throw  new Exception("Unable to create Client System at this time", e);
+            throw  new Exception("Unable to create Client System at this time: "+ e.getMessage());
         }
     }
 }

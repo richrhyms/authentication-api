@@ -9,7 +9,7 @@ import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.service.ClientSystemService;
 import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.ClientSystemCodeSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class ClientSystemServiceImpl implements ClientSystemService {
 
     public ClientSystemServiceImpl(ClientSystemRepository clientSystemRepository,
                                    SettingService settingService,
-                                   @WorkSpaceCodeSequence SequenceGenerator sequenceGenerator) {
+                                   @ClientSystemCodeSequence SequenceGenerator sequenceGenerator) {
         this.clientSystemRepository = clientSystemRepository;
         this.sequenceGenerator = sequenceGenerator;
         this.settingService = settingService;

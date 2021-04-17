@@ -11,6 +11,8 @@ import com.richotaru.authenticationapi.domain.model.pojo.WorkSpaceUserPojo;
 import com.richotaru.authenticationapi.entity.QWorkSpaceUser;
 import com.richotaru.authenticationapi.entity.WorkSpaceUser;
 import com.richotaru.authenticationapi.enumeration.GenderConstant;
+import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
+import com.richotaru.authenticationapi.enumeration.WorkSpaceUserTypeConstant;
 import com.richotaru.authenticationapi.service.WorkSpaceUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,8 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -41,7 +46,7 @@ public class WorkSpaceUserController {
     @GetMapping
     @Operation(summary = "Search for Client Users", description = "Call this API to search for Client Users")
     @ApiResponses(@ApiResponse(responseCode = "200", description = "Client User List"))
-    public QueryResults<WorkSpaceUser> searchWorkSpaceUser(@RequestParam("limit") Optional<Integer> optionalLimit,
+    public QueryResults<WorkSpaceUserPojo> searchWorkSpaceUser(@RequestParam("limit") Optional<Integer> optionalLimit,
                                                            @RequestParam("offset") Optional<Integer> optionalOffset,
                                                            @RequestParam("firstName") Optional<String> optionalFirstName,
                                                            @RequestParam("lastName") Optional<String> optionalLastName,
@@ -57,7 +62,8 @@ public class WorkSpaceUserController {
                                                            @RequestParam("emailVerified") Optional<Boolean> optionalEmailVerified){
         QWorkSpaceUser qworkSpaceUser = QWorkSpaceUser.workSpaceUser;
         JPAQuery<WorkSpaceUser> jpaQuery = appRepository.startJPAQuery(qworkSpaceUser);
-
+        jpaQuery.where(qworkSpaceUser.type.ne(WorkSpaceUserTypeConstant.DEFAULT));
+        jpaQuery.where(qworkSpaceUser.status.eq(GenericStatusConstant.ACTIVE));
         optionalFirstName.ifPresent(firstName->{
             jpaQuery.where(qworkSpaceUser.firstName.equalsIgnoreCase(firstName));
         });
@@ -96,18 +102,35 @@ public class WorkSpaceUserController {
         });
         jpaQuery.limit(optionalLimit.orElse(100));
         jpaQuery.offset(optionalOffset.orElse(0));
-
-        return  jpaQuery.fetchResults();
+        QueryResults<WorkSpaceUser> results = jpaQuery.fetchResults();
+        return  new QueryResults<>(getClientUserPojos(results.getResults()),
+                results.getLimit(),
+                results.getOffset(),
+                results.getTotal());
     }
     @Public
     @PostMapping
-    public ResponseEntity<WorkSpaceUserPojo> createWorkSpaceUser(@RequestBody WorkSpaceUserDto dto) throws Exception {
-        return ResponseEntity.ok(workSpaceUserService.createWorkSpaceUser(dto));
+    public ResponseEntity<WorkSpaceUserPojo> createWorkSpaceUser(@RequestBody @Valid WorkSpaceUserDto dto) throws Exception {
+        try {
+            return ResponseEntity.ok(workSpaceUserService.createWorkSpaceUser(dto));
+        }catch (Exception e){
+            e.printStackTrace();
+            throw  new IllegalArgumentException("Unable to create user: "+e.getMessage());
+        }
     }
 
     @Public
     @PostMapping("authenticate")
     public ResponseEntity<WorkSpaceUserAuthPojo> authenticateClientUser(@RequestBody AccountAuthDto dto) throws Exception {
-        return ResponseEntity.ok(workSpaceUserService.authenticate(dto));
+        try {
+            return ResponseEntity.ok(workSpaceUserService.authenticate(dto));
+        }catch (Exception e){
+            e.printStackTrace();
+            throw  new IllegalArgumentException("Unable to authenticate user: "+e.getMessage());
+        }
+    }
+
+    private List<WorkSpaceUserPojo> getClientUserPojos(List<WorkSpaceUser> clientUsers){
+        return clientUsers.stream().map(WorkSpaceUserPojo::new).collect(Collectors.toList());
     }
 }

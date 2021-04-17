@@ -79,7 +79,7 @@ public class DefaultClientSystemSetup {
                             logger.warn("Default WorkSpace User Not Found");
                             logger.info("Creating Default Client System...");
                             ClientSystem clientSystem = new ClientSystem();
-                            clientSystem.setSystemType(ClientSystemTypeConstant.WEB);
+                            clientSystem.setSystemType(ClientSystemTypeConstant.DEFAULT);
                             clientSystem.setWorkSpaceAccountType(WorkSpaceAccountTypeConstant.SINGLE_ACCOUNT);
                             clientSystem.setAccessMode(AccessModeConstant.STRICT);
                             clientSystem.setCreatedAt(LocalDateTime.now());
@@ -96,7 +96,7 @@ public class DefaultClientSystemSetup {
                             WorkSpace workSpace = new WorkSpace();
                             workSpace.setName("AUTHENTICATION :: DEFAULT WORKSPACE");
                             workSpace.setCode(workSpaceSequenceGenerator.getNext());
-                            workSpace.setType(WorkSpaceTypeConstant.ADMIN);
+                            workSpace.setType(WorkSpaceTypeConstant.DEFAULT);
                             workSpace.setClientSystem(clientSystem);
                             workSpace.setCreatedAt(LocalDateTime.now());
                             workSpace.setLastUpdatedAt(LocalDateTime.now());
@@ -121,6 +121,7 @@ public class DefaultClientSystemSetup {
                             workSpaceUser.setPhoneNumber("+2347032804231");
                             workSpaceUser.setPreferredName("RICH");
                             workSpaceUser.setSetupComplete(true);
+                            workSpaceUser.setType(WorkSpaceUserTypeConstant.DEFAULT);
                             workSpaceUser.setGeneratedPassword("password");
                             workSpaceUser.setCreatedAt(LocalDateTime.now());
                             workSpaceUser.setLastUpdatedAt(LocalDateTime.now());

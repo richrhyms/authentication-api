@@ -9,6 +9,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 public class WorkSpaceUserAuthPojo {
+    private String workspaceCode;
     private String username;
     private String jwtToken;
     private Date expirationDate;

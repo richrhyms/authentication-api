@@ -7,6 +7,4 @@ import com.richotaru.authenticationapi.entity.WorkSpace;
 public interface WorkSpaceService {
     WorkSpace createWorkSpace(WorkSpaceCreationDto dto);
     WorkSpace updateWorkSpace(Long id, WorkSpaceUpdateDto dto);
-//    PortalAccountAuthPojo authenticate(AccountAuthDto dto) throws Exception;
-//    PortalAccountPojo getAuthenticatedAccount(String username) throws UsernameNotFoundException;
 }

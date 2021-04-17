@@ -48,7 +48,7 @@ public class WorkSpaceServiceImpl implements WorkSpaceService {
     @Override
     public WorkSpace createWorkSpace(WorkSpaceCreationDto dto) {
 
-        if(clientSystemService.isValidKey(dto.getClientKey())){
+        if(!clientSystemService.isValidKey(dto.getClientKey())){
             throw  new IllegalArgumentException(" Client Key is Invalid!");
         }
 
