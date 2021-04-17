@@ -5,6 +5,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.richotaru.authenticationapi.dao.AppRepository;
 import com.richotaru.authenticationapi.domain.annotations.Public;
 import com.richotaru.authenticationapi.domain.model.dto.WorkSpaceCreationDto;
+import com.richotaru.authenticationapi.domain.model.dto.WorkSpaceUpdateDto;
 import com.richotaru.authenticationapi.entity.QWorkSpace;
 import com.richotaru.authenticationapi.entity.WorkSpace;
 import com.richotaru.authenticationapi.enumeration.WorkSpaceTypeConstant;
@@ -27,7 +28,7 @@ import java.util.Optional;
  */
 
 @RestController
-@RequestMapping("portal-account")
+@RequestMapping("work-space")
 public class WorkSpaceController {
     @Autowired
     private WorkSpaceService workSpaceService;
@@ -40,7 +41,7 @@ public class WorkSpaceController {
     @GetMapping
     @Operation(summary = "Search for Portal Accounts", description = "Call this API to search for Portal Account")
     @ApiResponses(@ApiResponse(responseCode = "200", description = "Receive Search Result for Portal Account"))
-    public QueryResults<WorkSpace> searchPortalAccount(@RequestParam("limit") Optional<Integer> optionalLimit,
+    public QueryResults<WorkSpace> searchWorkSpaces(@RequestParam("limit") Optional<Integer> optionalLimit,
                                                                @RequestParam("offset") Optional<Integer> optionalOffset,
                                                                @RequestParam("acountName")Optional<String> optionalAccountName,
                                                                @RequestParam("accountCode")Optional<String> optionalAccountCode,
@@ -77,9 +78,16 @@ public class WorkSpaceController {
             throw  new Exception("Unable to create Portal Account at this time", e);
         }
     }
-//    @Public
-//    @PostMapping("authenticate")
-//    public ResponseEntity<PortalAccountAuthPojo> authenticateClientUser(@RequestBody AccountAuthDto dto) throws Exception {
-//        return ResponseEntity.ok(portalAccountService.authenticate(dto));
-//    }
+    @PatchMapping("/{id}")
+    @Operation(summary = "Update a Work Space", description = "Call this API to update a Work Space")
+    @ApiResponses(@ApiResponse(responseCode = "200", description = "Work Space updated"))
+    public ResponseEntity<WorkSpace> updatedWorkSpace(@PathVariable("id") Long id,
+                                                                @RequestBody @Valid WorkSpaceUpdateDto dto) throws Exception {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(workSpaceService.updateWorkSpace(id, dto));
+        }catch (Exception e){
+            e.printStackTrace();
+            throw  new Exception("Unable to create Client System at this time", e);
+        }
+    }
 }

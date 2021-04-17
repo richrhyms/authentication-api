@@ -1,6 +1,5 @@
 package com.richotaru.authenticationapi.utils;
 
-import com.richotaru.authenticationapi.domain.entity.ClientSystem;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -8,17 +7,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -54,19 +48,15 @@ public class JwtUtils {
     return extractExpiration(token).before(new Date());
     }
 
-    public String generateToken(String username, boolean isClient){
+    public String generateToken(String username){
         Map<String, Object> claim = new HashMap<>(); // TODO implement role based authentication
-        return createToken(claim, username, isClient);
+        return createToken(claim, username);
 
     }
-    private String createToken(Map<String, Object> claim, String subject, boolean isClient){
+    private String createToken(Map<String, Object> claim, String subject){
         long now = (new Date()).getTime();
         Date validity;
-        if (isClient) {
-            validity = new Date(now + tokenValidityInSecondsForClient);
-        } else {
-            validity = new Date(now + tokenValidityInSeconds);
-        }
+        validity = new Date(now + tokenValidityInSeconds);
         return Jwts.builder().setClaims(claim).setSubject(subject).setIssuedAt(new Date())
                 .setExpiration(validity)
                 .signWith(SignatureAlgorithm.HS256, secretKey).compact();

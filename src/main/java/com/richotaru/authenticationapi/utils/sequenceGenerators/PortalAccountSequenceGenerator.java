@@ -1,6 +1,6 @@
 package com.richotaru.authenticationapi.utils.sequenceGenerators;
 
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.PortalAccountCodeSequence;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.inject.Inject;
@@ -13,7 +13,7 @@ import java.util.Locale;
  * @author RIchard Otaru <rotaru@byteworks.com.ng>
  */
 
-@PortalAccountCodeSequence
+@WorkSpaceCodeSequence
 @Named
 public class PortalAccountSequenceGenerator extends SequenceGenerator {
 
