@@ -6,7 +6,7 @@
 package com.richotaru.authenticationapi.configuration.interceptors;
 
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
-import com.richotaru.authenticationapi.service.WorkSpaceService;
+import com.richotaru.authenticationapi.service.WorkSpaceUserService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import static com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter.AUTHORIZATION_HEADER;
+import static com.richotaru.authenticationapi.configuration.filters.ClientSystemJwtFilter.WORK_SPACE_CODE_HEADER;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -33,14 +34,14 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
 
     private final ApplicationContext applicationContext;
     private final JwtUtils jwtUtils;
-    private final WorkSpaceService workSpaceService;
+    private final WorkSpaceUserService workSpaceUserService;
 
     public RequestPrincipalHandlerInterceptor(ApplicationContext applicationContext,
                                               JwtUtils jwtUtils,
-                                              WorkSpaceService workSpaceService) {
+                                              WorkSpaceUserService workSpaceUserService) {
         this.applicationContext = applicationContext;
         this.jwtUtils = jwtUtils;
-        this.workSpaceService = workSpaceService;
+        this.workSpaceUserService = workSpaceUserService;
     }
 
     public static FactoryBean<RequestPrincipal> requestPrincipal() {
@@ -51,7 +52,8 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
                 if (RequestContextHolder.getRequestAttributes() == null) {
                     return null;
                 }
-                return (RequestPrincipal) RequestContextHolder.currentRequestAttributes().getAttribute(RequestPrincipal.class.getName(),
+                return (RequestPrincipal) RequestContextHolder.currentRequestAttributes()
+                        .getAttribute(RequestPrincipal.class.getName(),
                         RequestAttributes.SCOPE_REQUEST);
             }
 
@@ -110,10 +112,11 @@ public class RequestPrincipalHandlerInterceptor extends HandlerInterceptorAdapte
 
     private RequestPrincipal getUserFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        String workspaceCode = request.getHeader(WORK_SPACE_CODE_HEADER);
         if (org.springframework.util.StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             String jwt = bearerToken.substring(7);
             String clientName = jwtUtils.extractUsername(jwt);
-            return new RequestPrincipal(workSpaceService.getAuthenticatedAccount(clientName));
+            return new RequestPrincipal(workSpaceUserService.getAuthenticatedUser(clientName,workspaceCode));
         }
         return null;
     }

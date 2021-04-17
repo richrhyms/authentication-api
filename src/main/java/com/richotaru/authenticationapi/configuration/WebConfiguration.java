@@ -1,4 +1,5 @@
 package com.richotaru.authenticationapi.configuration;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -13,7 +14,7 @@ import com.richotaru.authenticationapi.configuration.interceptors.AccessConstrai
 import com.richotaru.authenticationapi.configuration.interceptors.RequestPrincipalHandlerInterceptor;
 import com.richotaru.authenticationapi.domain.enums.TimeFormatConstants;
 import com.richotaru.authenticationapi.domain.model.RequestPrincipal;
-import com.richotaru.authenticationapi.service.WorkSpaceService;
+import com.richotaru.authenticationapi.service.WorkSpaceUserService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.JavassistLazyInitializer;
@@ -33,7 +34,9 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import javax.validation.ConstraintValidatorFactory;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -48,21 +51,21 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final ConstraintValidatorFactory constraintValidatorFactory;
     private final JwtUtils jwtUtils;
-    private final WorkSpaceService workSpaceService;
+    private final WorkSpaceUserService workSpaceUserService;
 
     public WebConfiguration(ApplicationContext applicationContext,
                             ConstraintValidatorFactory constraintValidatorFactory,
-                            JwtUtils jwtUtils, WorkSpaceService workSpaceService) {
+                            JwtUtils jwtUtils, WorkSpaceUserService workSpaceUserService) {
         this.applicationContext = applicationContext;
         this.constraintValidatorFactory = constraintValidatorFactory;
 
         this.jwtUtils = jwtUtils;
-        this.workSpaceService = workSpaceService;
+        this.workSpaceUserService = workSpaceUserService;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils, workSpaceService));
+        registry.addInterceptor(new RequestPrincipalHandlerInterceptor(applicationContext,jwtUtils, workSpaceUserService));
         registry.addInterceptor(new AccessConstraintHandlerInterceptor(applicationContext));
         registry.addInterceptor(localeChangeInterceptor());
     }
