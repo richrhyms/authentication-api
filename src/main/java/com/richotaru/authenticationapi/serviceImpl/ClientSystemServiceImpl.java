@@ -7,7 +7,6 @@ import com.richotaru.authenticationapi.domain.model.pojo.ClientSystemPojo;
 import com.richotaru.authenticationapi.entity.ClientSystem;
 import com.richotaru.authenticationapi.enumeration.GenericStatusConstant;
 import com.richotaru.authenticationapi.service.ClientSystemService;
-import com.richotaru.authenticationapi.service.WorkSpaceService;
 import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
@@ -32,16 +31,13 @@ public class ClientSystemServiceImpl implements ClientSystemService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final ClientSystemRepository clientSystemRepository;
-    private final WorkSpaceService workSpaceService;
     private final SequenceGenerator sequenceGenerator;
     private final SettingService settingService;
 
     public ClientSystemServiceImpl(ClientSystemRepository clientSystemRepository,
-                                   WorkSpaceService workSpaceService,
                                    SettingService settingService,
                                    @WorkSpaceCodeSequence SequenceGenerator sequenceGenerator) {
         this.clientSystemRepository = clientSystemRepository;
-        this.workSpaceService = workSpaceService;
         this.sequenceGenerator = sequenceGenerator;
         this.settingService = settingService;
     }

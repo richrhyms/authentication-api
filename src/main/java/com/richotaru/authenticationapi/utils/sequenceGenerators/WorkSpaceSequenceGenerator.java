@@ -1,6 +1,6 @@
 package com.richotaru.authenticationapi.utils.sequenceGenerators;
 
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.ClientSystemCodeSequence;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.inject.Inject;
@@ -13,18 +13,18 @@ import java.util.Locale;
  * @author RIchard Otaru <rotaru@byteworks.com.ng>
  */
 
-@ClientSystemCodeSequence
+@WorkSpaceCodeSequence
 @Named
-public class ClientSystemSequenceGenerator extends SequenceGenerator {
+public class WorkSpaceSequenceGenerator extends SequenceGenerator {
 
     @Inject
-    public ClientSystemSequenceGenerator(EntityManager entityManager, TransactionTemplate transactionTemplate) {
-        super(entityManager, transactionTemplate, "client_system_code");
+    public WorkSpaceSequenceGenerator(EntityManager entityManager, TransactionTemplate transactionTemplate) {
+        super(entityManager, transactionTemplate, "work_space_code");
     }
 
     @Override
     public String getNext() {
         int year = Calendar.getInstance().get(Calendar.YEAR);
-        return String.format(Locale.ENGLISH, "CS_"+year+"_CSC%07d", getNextLong());
+        return String.format(Locale.ENGLISH, "WS_"+year+"_PA%07d", getNextLong());
     }
 }

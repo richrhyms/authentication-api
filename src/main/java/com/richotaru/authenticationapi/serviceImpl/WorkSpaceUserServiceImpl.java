@@ -19,7 +19,7 @@ import com.richotaru.authenticationapi.service.ClientSystemService;
 import com.richotaru.authenticationapi.service.WorkSpaceUserService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
 import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceUserCodeSequence;
 import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +32,9 @@ import javax.inject.Provider;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -61,7 +62,7 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                                     Provider<RequestPrincipal> requestPrincipalProvider,
                                     JwtUtils jwtUtils,
                                     PasswordEncoder passwordEncoder,
-                                    @WorkSpaceCodeSequence SequenceGenerator sequenceGenerator) {
+                                    @WorkSpaceUserCodeSequence SequenceGenerator sequenceGenerator) {
         this.workSpaceRepository = workSpaceRepository;
         this.workSpaceUserRepository = workSpaceUserRepository;
         this.clientSystemRepository = clientSystemRepository;
@@ -97,6 +98,7 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
 
             user.setDateOfBirth(Timestamp.valueOf(dto.getDob()));
             user.setCreatedAt(LocalDateTime.now());
+            user.setUserId(sequenceGenerator.getNext());
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
             user.setLastUpdatedAt(LocalDateTime.now());
             user.setStatus(GenericStatusConstant.ACTIVE);
@@ -112,7 +114,10 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             membership.setCreatedBy(requestPrincipalProvider.get().getWorkSpaceUser().getUser());
             workSpaceMembershipRepository.save(membership);
 
-            user.setWorkSpaceMemberships(Collections.singletonList(membership));
+
+            List<WorkSpaceMembership> memberships = new ArrayList<>();
+            memberships.add(membership);
+            user.setWorkSpaceMemberships(memberships);
             workSpaceUserRepository.save(user);
 
             logger.info("USER ID::" + user.getUserId()+ "WorkSpace INFO {}", workSpace);

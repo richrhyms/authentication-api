@@ -11,8 +11,9 @@ import com.richotaru.authenticationapi.entity.WorkSpaceUser;
 import com.richotaru.authenticationapi.enumeration.*;
 import com.richotaru.authenticationapi.service.SettingService;
 import com.richotaru.authenticationapi.utils.JwtUtils;
-import com.richotaru.authenticationapi.utils.sequenceGenerators.SequenceGenerator;
-import com.richotaru.authenticationapi.utils.sequenceGenerators.qualifiers.WorkSpaceCodeSequence;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.ClientSystemSequenceGenerator;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.WorkSpaceSequenceGenerator;
+import com.richotaru.authenticationapi.utils.sequenceGenerators.WorkSpaceUserSequenceGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -23,7 +24,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Otaru Richard <richotaru@gmail.com>
@@ -35,7 +37,9 @@ public class DefaultClientSystemSetup {
     private final WorkSpaceRepository workSpaceRepository;
     private final WorkSpaceUserRepository workSpaceUserRepository;
     private final WorkSpaceMembershipRepository workSpaceMembershipRepository;
-    private final SequenceGenerator sequenceGenerator;
+    private final WorkSpaceSequenceGenerator workSpaceSequenceGenerator;
+    private final WorkSpaceUserSequenceGenerator workSpaceUserSequenceGenerator;
+    private final ClientSystemSequenceGenerator clientSystemSequenceGenerator;
     private final TransactionTemplate transactionTemplate;
     private final PasswordEncoder passwordEncoder;
     private final SettingService settingService;
@@ -47,7 +51,9 @@ public class DefaultClientSystemSetup {
                                     WorkSpaceMembershipRepository workSpaceMembershipRepository,
                                     WorkSpaceRepository workSpaceRepository,
                                     WorkSpaceUserRepository workSpaceUserRepository,
-                                    @WorkSpaceCodeSequence SequenceGenerator sequenceGenerator,
+                                    WorkSpaceSequenceGenerator workSpaceSequenceGenerator,
+                                    WorkSpaceUserSequenceGenerator workSpaceUserSequenceGenerator,
+                                    ClientSystemSequenceGenerator clientSystemSequenceGenerator,
                                     TransactionTemplate transactionTemplate,
                                     PasswordEncoder passwordEncoder, SettingService settingService,
                                     JwtUtils jwtUtils) {
@@ -55,7 +61,9 @@ public class DefaultClientSystemSetup {
         this.workSpaceMembershipRepository = workSpaceMembershipRepository;
         this.workSpaceRepository = workSpaceRepository;
         this.workSpaceUserRepository = workSpaceUserRepository;
-        this.sequenceGenerator = sequenceGenerator;
+        this.workSpaceSequenceGenerator = workSpaceSequenceGenerator;
+        this.workSpaceUserSequenceGenerator = workSpaceUserSequenceGenerator;
+        this.clientSystemSequenceGenerator = clientSystemSequenceGenerator;
         this.transactionTemplate = transactionTemplate;
         this.passwordEncoder = passwordEncoder;
         this.settingService = settingService;
@@ -67,7 +75,7 @@ public class DefaultClientSystemSetup {
     public void init() {
         transactionTemplate.execute(tx -> {
             try {
-                logger.info("Searching for Default Portal Account...");
+                logger.info("Searching for Default Workspace User...");
                 workSpaceUserRepository.findByUsernameAndStatus(settingService.getString("DEFAULT_ADMIN_USERNAME","super_admin"), GenericStatusConstant.ACTIVE)
                         .orElseGet(() -> {
                             logger.warn("Default WorkSpace User Not Found");
@@ -79,7 +87,7 @@ public class DefaultClientSystemSetup {
                             clientSystem.setCreatedAt(LocalDateTime.now());
                             clientSystem.setLastUpdatedAt(LocalDateTime.now());
                             clientSystem.setStatus(GenericStatusConstant.ACTIVE);
-                            clientSystem.setCode(sequenceGenerator.getNext());
+                            clientSystem.setCode(clientSystemSequenceGenerator.getNext());
                             clientSystem.setDisplayName("AUTHENTICATION API :: DEFAULT CLIENT");
 
                             clientSystemRepository.save(clientSystem);
@@ -89,7 +97,7 @@ public class DefaultClientSystemSetup {
 
                             WorkSpace workSpace = new WorkSpace();
                             workSpace.setName("AUTHENTICATION :: DEFAULT WORKSPACE");
-                            workSpace.setCode(sequenceGenerator.getNext());
+                            workSpace.setCode(workSpaceSequenceGenerator.getNext());
                             workSpace.setType(WorkSpaceTypeConstant.ADMIN);
                             workSpace.setClientSystem(clientSystem);
                             workSpace.setCreatedAt(LocalDateTime.now());
@@ -102,6 +110,7 @@ public class DefaultClientSystemSetup {
                             workSpaceUser.setDisplayName("AUTHENTICATION ADMIN :: DEFAULT WORKSPACE USER");
                             workSpaceUser.setUsername(settingService.getString("DEFAULT_ADMIN_USERNAME","super_admin"));
                             workSpaceUser.setPassword(passwordEncoder.encode(settingService.getString("DEFAULT_ADMIN_PASSWORD","P@ssw0rd!")));
+                            workSpaceUser.setUserId(workSpaceUserSequenceGenerator.getNext());
                             workSpaceUser.setFirstName("ASH");
                             workSpaceUser.setLastName("OTARU");
                             workSpaceUser.setOtherNames("FAVOUR");
@@ -132,7 +141,9 @@ public class DefaultClientSystemSetup {
 
 
                             logger.info("Updating Workspace user Membership info...");
-                            workSpaceUser.setWorkSpaceMemberships(Collections.singletonList(membership));
+                            List<WorkSpaceMembership> memberships = new ArrayList<>();
+                            memberships.add(membership);
+                            workSpaceUser.setWorkSpaceMemberships(memberships);
                             workSpaceUserRepository.save(workSpaceUser);
 
 
