@@ -12,10 +12,6 @@ import java.util.Optional;
 
 @Repository
 public interface WorkSpaceMembershipRepository extends JpaRepository<WorkSpaceMembership, Long> {
-//    @Query("select ms from WorkSpaceMembership ms join fetch ms.workSpace ws " +
-//            "where ws.clientSystem = ?1 AND ms.workSpaceUser = ?2 AND ws.status = ?2 ")
-//    List<WorkSpaceMembership> findByClientSystemAndWorkSpaceUserAndStatus(ClientSystem clientSystem, WorkSpaceUser user, GenericStatusConstant status);
-
     Optional<WorkSpaceMembership> findByWorkSpaceAndWorkSpaceUserAndStatus(WorkSpace workSpace, WorkSpaceUser user, GenericStatusConstant status);
     List<WorkSpaceMembership> findAllByWorkSpaceUserAndStatus(WorkSpaceUser user, GenericStatusConstant status);
 }

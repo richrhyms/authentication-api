@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +27,8 @@ public class JwtUtils {
     private String secretKey;
     private static final String AUTHORITIES_KEY = "roles";
     long tokenValidityInSeconds = 1800; // 30 minutes
-    long tokenValidityInSecondsForClient = 2592000; // 30 days
+    long tokenValidityInMinutes = 15; // 15 minutes
+    long tokenValidityInDays = 30; // 30 days
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public <T> T extractClaims(String token, Function<Claims, T> claimsResolver){
@@ -54,13 +57,9 @@ public class JwtUtils {
 
     }
     private String createToken(Map<String, Object> claim, String subject){
-        long now = (new Date()).getTime();
-        Date validity;
-        logger.info("NOW AND {}", tokenValidityInSeconds * 1000);
-        validity = new Date(now + (tokenValidityInSeconds * 1000));
-        logger.info("VALIDITY {}", validity);
-        return Jwts.builder().setClaims(claim).setSubject(subject).setIssuedAt(new Date())
-                .setExpiration(validity)
+        LocalDateTime now = LocalDateTime.now();
+        return Jwts.builder().setClaims(claim).setSubject(subject).setIssuedAt(Timestamp.valueOf(now))
+                .setExpiration(Timestamp.valueOf(now.plusMinutes(tokenValidityInMinutes)))
                 .signWith(SignatureAlgorithm.HS256, secretKey).compact();
     }
     public Boolean validateToken(String token, String providedUsername){

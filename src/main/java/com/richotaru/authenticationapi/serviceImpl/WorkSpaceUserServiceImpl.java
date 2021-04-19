@@ -1,6 +1,5 @@
 package com.richotaru.authenticationapi.serviceImpl;
 
-import com.richotaru.authenticationapi.dao.ClientSystemRepository;
 import com.richotaru.authenticationapi.dao.WorkSpaceMembershipRepository;
 import com.richotaru.authenticationapi.dao.WorkSpaceRepository;
 import com.richotaru.authenticationapi.dao.WorkSpaceUserRepository;
@@ -51,14 +50,12 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
     private final SequenceGenerator sequenceGenerator;
     private final WorkSpaceRepository workSpaceRepository;
     private final WorkSpaceMembershipRepository workSpaceMembershipRepository;
-    private final ClientSystemRepository clientSystemRepository;
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public WorkSpaceUserServiceImpl(
                                     WorkSpaceUserRepository workSpaceUserRepository,
                                     WorkSpaceRepository workSpaceRepository,
                                     WorkSpaceMembershipRepository workSpaceMembershipRepository,
-                                    ClientSystemRepository clientSystemRepository,
                                     ClientSystemService clientSystemService,
                                     Provider<RequestPrincipal> requestPrincipalProvider,
                                     JwtUtils jwtUtils,
@@ -66,7 +63,6 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                                     @WorkSpaceUserCodeSequence SequenceGenerator sequenceGenerator) {
         this.workSpaceRepository = workSpaceRepository;
         this.workSpaceUserRepository = workSpaceUserRepository;
-        this.clientSystemRepository = clientSystemRepository;
         this.clientSystemService = clientSystemService;
         this.requestPrincipalProvider = requestPrincipalProvider;
         this.sequenceGenerator = sequenceGenerator;
@@ -120,7 +116,7 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             membership.setCreatedBy(requestPrincipalProvider.get().getWorkSpaceUser().getUser());
             workSpaceMembershipRepository.save(membership);
 
-            logger.info("USER ID::" + user.getUserId()+ "WorkSpace INFO {}", workSpace);
+            logger.info("Workspace User CREATED :: ID::" + user.getUserId());
             return new WorkSpaceUserPojo(user);
         } catch (Exception e) {
             e.printStackTrace();
@@ -129,19 +125,19 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
     }
 
     @Override
-    public WorkSpaceUser getWorkSpaceUserByEmail(String emailAddress) throws UsernameNotFoundException {
+    public WorkSpaceUser getWorkSpaceUserByEmail(String emailAddress){
         return  workSpaceUserRepository.findWorkSpaceUserByEmailAndStatus(emailAddress, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
     }
     @Override
-    public WorkSpaceUser getWorkSpaceUserByUsername(String username) throws UsernameNotFoundException {
+    public WorkSpaceUser getWorkSpaceUserByUsername(String username){
         return  workSpaceUserRepository.findByUsernameAndStatus(username, GenericStatusConstant.ACTIVE).orElseThrow(()
                 -> new UsernameNotFoundException("User not found"));
     }
 
 
     @Override
-    public WorkSpaceUserAuthPojo authenticate(AccountAuthDto dto) throws Exception {
+    public WorkSpaceUserAuthPojo authenticate(AccountAuthDto dto){
         if(!clientSystemService.isValidKey(dto.getClientKey())){
             throw  new IllegalArgumentException(" Client Key is not valid");
         }
@@ -149,29 +145,14 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                     .findByCodeAndStatus_fetchJoinClientSystem(dto.getWorkspaceCode(), GenericStatusConstant.ACTIVE)
                     .orElseThrow(()-> new IllegalArgumentException(" Cannot determine workspace"));
 
-        ClientSystem clientSystem = workSpace_to_access.getClientSystem();
 
         WorkSpaceUser user = workSpaceUserRepository.findByUsernameAndStatus(dto.getUsername(),
                 GenericStatusConstant.ACTIVE).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        if (clientSystem.getAccessMode() == AccessModeConstant.STRICT) {
-            workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access,user,
-                   GenericStatusConstant.ACTIVE).orElseThrow(()->
-                        new IllegalArgumentException(" '"+user.getUsername()
-                                +"' cannot access this workspace in STRICT mode")
-                    );
-        } else{
-            List<WorkSpaceMembership> user_workspaces = workSpaceMembershipRepository
-                    .findAllByWorkSpaceUserAndStatus(user, GenericStatusConstant.ACTIVE);
-            user_workspaces.stream()
-                    .filter(it-> it.getWorkSpace()
-                            .getClientSystem()
-                            .equals(workSpace_to_access.getClientSystem()))
-                    .findFirst()
-                    .orElseThrow(()->
-                            new IllegalArgumentException(" '"+user.getUsername()
-                                    +"' does not have access to any workspace in this system")
-                    );
-        }
+
+        confirmUserWorkspaceAccess(user,workSpace_to_access);
+
+        ClientSystem clientSystem = workSpace_to_access.getClientSystem();
+
 
         try{
             WorkSpaceUserAuthPojo response = new WorkSpaceUserAuthPojo();
@@ -181,11 +162,10 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
             response.setWorkspaceCode(workSpace_to_access.getCode());
 
 
-            if(user.getJwtToken().isPresent() && jwtUtils.validateToken(user.getJwtToken().get())){
+            if(user.getJwtToken().isPresent() && jwtUtils.validateToken(user.getJwtToken().get(), dto.getUsername())){
                 String jwtToken = user.getJwtToken().get();
                 response.setJwtToken(jwtToken);
                 response.setExpirationDate(jwtUtils.extractExpiration(jwtToken));
-                logger.info("Authenticated 1");
                 return response;
             }
             if(passwordEncoder.matches(dto.getPassword(), user.getPassword())){
@@ -197,7 +177,6 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                 Date expirationDate = jwtUtils.extractExpiration(jwtToken);
                 response.setJwtToken(jwtToken);
                 response.setExpirationDate(expirationDate);
-                logger.info("Authenticated 2");
                 return response;
             }
             throw new JwtException("Authentication Failed");
@@ -209,7 +188,7 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
     }
 
     @Override
-    public WorkSpaceUserPojo getAuthenticatedUser(String username, String workspaceCode) throws UsernameNotFoundException {
+    public WorkSpaceUserPojo getAuthenticatedUser(String username, String workspaceCode){
         WorkSpaceUser user = workSpaceUserRepository.findByUsernameAndStatus(username,
                 GenericStatusConstant.ACTIVE).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
@@ -217,17 +196,33 @@ public class WorkSpaceUserServiceImpl implements WorkSpaceUserService {
                 .findByCodeAndStatus_fetchJoinClientSystem(workspaceCode, GenericStatusConstant.ACTIVE)
                 .orElseThrow(() -> new IllegalArgumentException("Workspace not found!!"));
 
-        if (workSpace_to_access.getClientSystem().getAccessMode() == AccessModeConstant.STRICT) {
-            workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace_to_access, user,
-                    GenericStatusConstant.ACTIVE).orElseThrow(() ->
-                    new IllegalArgumentException(" '" + user.getUsername()
-                            + "' cannot access this workspace in STRICT mode")
-            );
-        }
+        confirmUserWorkspaceAccess(user,workSpace_to_access);
+
         WorkSpaceUserPojo pojo = new WorkSpaceUserPojo(user);
         pojo.setWorkSpace(workSpace_to_access);
 
         return pojo;
     }
 
+    private void confirmUserWorkspaceAccess(WorkSpaceUser user, WorkSpace workSpace){
+        if (workSpace.getClientSystem().getAccessMode() == AccessModeConstant.STRICT) {
+            workSpaceMembershipRepository.findByWorkSpaceAndWorkSpaceUserAndStatus(workSpace, user,
+                    GenericStatusConstant.ACTIVE).orElseThrow(() ->
+                    new IllegalArgumentException(" '" + user.getUsername()
+                            + "' cannot access this workspace in STRICT mode")
+            );
+        }else{
+            List<WorkSpaceMembership> user_workspaces = workSpaceMembershipRepository
+                    .findAllByWorkSpaceUserAndStatus(user, GenericStatusConstant.ACTIVE);
+            user_workspaces.stream()
+                    .filter(it-> it.getWorkSpace()
+                            .getClientSystem()
+                            .equals(workSpace.getClientSystem()))
+                    .findFirst()
+                    .orElseThrow(()->
+                            new IllegalArgumentException(" '"+user.getUsername()
+                                    +"' does not have access to any workspace in this system")
+                    );
+        }
+    }
 }
